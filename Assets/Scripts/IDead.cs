@@ -1,0 +1,4 @@
+interface IDead
+{
+    bool IsDead();
+}
