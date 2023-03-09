@@ -8,19 +8,19 @@ public class TestCameraMover
     GameObject _camera;
     GameObject _cameraHinge;
     CameraMover _cameraController;
-    const float _maxDistance = 10f;
+    const float _obstacleDistance = 10f;
     const float _minDistanceFromObstacle = .5f;
     const float _delta = 0.01f;
 
     [Test]
     public void TestUpdateCameraPositionAndRotationWithZeroAngle()
     {
-        GivenThereIsObstacleAtDistance(_maxDistance);
+        GivenThereIsObstacleAtDistance(_obstacleDistance);
 
         WhenVerticalAngleEquals(0f);
 
-        var obstacleDistance = _maxDistance - _minDistanceFromObstacle;
-        var expectedCameraPosition = new Vector3(0f, 0f, -obstacleDistance);
+        var cameraDistance = _obstacleDistance - _minDistanceFromObstacle;
+        var expectedCameraPosition = new Vector3(0f, 0f, -cameraDistance);
         ThenCameraShouldBeAt(expectedCameraPosition);
         ThenCameraShouldLookAt(Quaternion.Euler(0f, 0f, 0f));
     }
@@ -28,11 +28,11 @@ public class TestCameraMover
     [Test]
     public void TestUpdateCameraPositionAndRotation45Degrees()
     {
-        GivenThereIsObstacleAtDistance(_maxDistance * Mathf.Sqrt(2));
+        GivenThereIsObstacleAtDistance(_obstacleDistance * Mathf.Sqrt(2));
 
         WhenVerticalAngleEquals(45f);
 
-        var obstacleDistance = _maxDistance - _minDistanceFromObstacle;
+        var obstacleDistance = _obstacleDistance - _minDistanceFromObstacle;
         var expectedCameraPosition = new Vector3(0f, obstacleDistance, -obstacleDistance);
         ThenCameraShouldBeAt(expectedCameraPosition);
         ThenCameraShouldLookAt(Quaternion.Euler(45f, 0f, 0f));
@@ -41,7 +41,7 @@ public class TestCameraMover
     [Test]
     public void TestUpdateCameraPositionAndRotation90Degrees()
     {
-        GivenThereIsObstacleAtDistance(_maxDistance);
+        GivenThereIsObstacleAtDistance(_obstacleDistance);
 
         WhenVerticalAngleEquals(90f);
 
@@ -52,7 +52,7 @@ public class TestCameraMover
     [Test]
     public void TestUpdateCameraPositionAndRotationMinus90Degrees()
     {
-        GivenThereIsObstacleAtDistance(_maxDistance);
+        GivenThereIsObstacleAtDistance(_obstacleDistance);
 
         WhenVerticalAngleEquals(-90f);
 
@@ -67,11 +67,27 @@ public class TestCameraMover
         Assert.Positive(Mathf.Cos(CameraMover.MaxAngle));
     }
 
+    [Test]
+    public void TestUpdateCameraPositionAndRotationFromTheRight()
+    {
+        GivenThereIsObstacleAtDistance(_obstacleDistance);
+        AndPlayerIsLookingFromTheRight();
+
+        WhenVerticalAngleEquals(0f);
+
+        ThenCameraShouldLookAt(Quaternion.Euler(0f, -90f, 0f));
+    }
+
     private void GivenThereIsObstacleAtDistance(float distance)
     {
         CreateObjects();
         var raycastAdapter = new FakeRaycastAdapter(distance, Vector3.forward, true);
         AddCameraControllerToPlayer(raycastAdapter);
+    }
+
+    private void AndPlayerIsLookingFromTheRight()
+    {
+        _player.transform.Rotate(0f, -90f, 0f);
     }
 
     private void CreateObjects()
@@ -93,7 +109,7 @@ public class TestCameraMover
         _cameraController.SetTestParameters(
             _camera.transform,
             _cameraHinge.transform,
-            _maxDistance,
+            _obstacleDistance,
             _minDistanceFromObstacle,
             raycastAdapter);
     }
