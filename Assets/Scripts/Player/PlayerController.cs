@@ -30,6 +30,7 @@ public class PlayerController : NetworkBehaviour
     private Follower _follower;
     private float _cameraVerticalAngle = 0f;
     private int _money = 0;
+    private IInput _input = new InputAdapter();
 
     private const RigidbodyConstraints default_constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
     private readonly Vector3 _entranceDetectionCenter = new(0f, -.5f, 0f);
@@ -69,13 +70,13 @@ public class PlayerController : NetworkBehaviour
         if (IsOwner)
         {
             // Quit game
-            if (Input.GetKeyDown(KeyCode.Escape)) Quit();
+            if (_input.GetKeyDown(KeyCode.Escape)) Quit();
 
             // Entering entrance
-            if (Input.GetKeyDown(KeyCode.E)) if (!BaseInteraction()) CollectMoney();
+            if (_input.GetKeyDown(KeyCode.E)) if (!BaseInteraction()) CollectMoney();
 
             // Fight
-            if (Input.GetMouseButtonDown(0) && _playerState.CurrentState == State.OUTSIDE)
+            if (_input.GetLeftMouseButtonDown() && _playerState.CurrentState == State.OUTSIDE)
             {
                 // Random animation parameters
                 var index = (byte)Random.Range(0, _animationCount);
@@ -85,12 +86,12 @@ public class PlayerController : NetworkBehaviour
             }
 
             // Path following
-            if (Input.GetKeyDown(KeyCode.Q)) PathFollowing();
+            if (_input.GetKeyDown(KeyCode.Q)) PathFollowing();
 
             // Showing cursor
-            if (Input.GetKeyDown(KeyCode.LeftControl))
+            if (_input.GetKeyDown(KeyCode.LeftControl))
                 Cursor.lockState = CursorLockMode.None;
-            else if (Input.GetKeyUp(KeyCode.LeftControl))
+            else if (_input.GetKeyUp(KeyCode.LeftControl))
                 Cursor.lockState = CursorLockMode.Locked;
         }
         else
@@ -116,16 +117,13 @@ public class PlayerController : NetworkBehaviour
 
     private void Move()
     {
-        var input = GetHorizontalVerticalInput();
+        var input = GetKeyInput();
         MoveBasedOnInput(input);
     }
 
-    private Vector2 GetHorizontalVerticalInput()
+    private Vector2 GetKeyInput()
     {
-        Vector2 input;
-        input.x = Input.GetAxisRaw("Horizontal");
-        input.y = Input.GetAxisRaw("Vertical");
-        return input;
+        return _input.GetKeyAxis();
     }
 
     private void MoveBasedOnInput(Vector2 input)
@@ -142,10 +140,7 @@ public class PlayerController : NetworkBehaviour
 
     private Vector2 GetMouseInput()
     {
-        Vector2 input;
-        input.x = Input.GetAxis("Mouse X");
-        input.y = Input.GetAxis("Mouse Y");
-        return input;
+        return _input.GetMouseAxis();
     }
 
     private void RotateBaseOnInput(Vector2 input)

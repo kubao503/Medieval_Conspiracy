@@ -17,7 +17,7 @@ public interface IInput
 }
 
 
-public class UserInput : IInput
+public class InputAdapter : IInput
 {
     public bool GetKeyDown(KeyCode key)
     {
