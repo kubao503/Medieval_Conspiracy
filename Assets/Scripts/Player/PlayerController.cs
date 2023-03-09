@@ -11,26 +11,20 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private LayerMask _enemyLayer;
     [SerializeField] private LayerMask _entranceLayer;
     [SerializeField] private LayerMask _vaultLayer;
-    [SerializeField] private float _walkingSpeed;
     [SerializeField] private float _pathFollowingSpeed;
-    [SerializeField] private float _mouseSensitivity;
     [SerializeField] private float _attackRange;
     [SerializeField] private Transform _attackCenter;
     [SerializeField] private int _damage;
-    [SerializeField] private float _cameraMaxAngle;
-    [SerializeField] private float _cameraMinAngle;
     [SerializeField] private int _animationCount;
     private PlayerHealth _playerHealth;
     private PlayerState _playerState;
     private TeamController _teamController;
-    private CameraMover _cameraController;
     private Rigidbody _rb;
     private Renderer[] _renderers;
     private Animator _animator;
     private Follower _follower;
-    private float _cameraVerticalAngle = 0f;
     private int _money = 0;
-    private IInput _input = new InputAdapter();
+    private IInput _input = InputAdapter.Instance;
 
     private const RigidbodyConstraints default_constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
     private readonly Vector3 _entranceDetectionCenter = new(0f, -.5f, 0f);
@@ -48,7 +42,6 @@ public class PlayerController : NetworkBehaviour
         _playerHealth = GetComponent<PlayerHealth>();
         _playerState = GetComponent<PlayerState>();
         _teamController = GetComponent<TeamController>();
-        _cameraController = GetComponent<CameraMover>();
         _follower = GetComponent<Follower>();
     }
 
@@ -93,64 +86,14 @@ public class PlayerController : NetworkBehaviour
                 Cursor.lockState = CursorLockMode.None;
             else if (_input.GetKeyUp(KeyCode.LeftControl))
                 Cursor.lockState = CursorLockMode.Locked;
+
+            UpdateNetPositionAndRotation();
         }
         else
         {
             // Synchronize position and rotation
             transform.SetPositionAndRotation(_netTransform.Value.Position, _netTransform.Value.Rotation);
         }
-    }
-
-
-    private void FixedUpdate()
-    {
-        if (IsOwner)
-        {
-            if (_playerState.CurrentState == State.OUTSIDE)
-                Move();
-            if (Cursor.lockState != CursorLockMode.None)
-                Rotate();
-
-            UpdateNetPositionAndRotation();
-        }
-    }
-
-    private void Move()
-    {
-        var input = GetKeyInput();
-        MoveBasedOnInput(input);
-    }
-
-    private Vector2 GetKeyInput()
-    {
-        return _input.GetKeyAxis();
-    }
-
-    private void MoveBasedOnInput(Vector2 input)
-    {
-        _rb.velocity = (transform.forward * input.y + transform.right * input.x).normalized * _walkingSpeed;
-    }
-
-    private void Rotate()
-    {
-        var input = GetMouseInput();
-        RotateBaseOnInput(input);
-        _cameraController.UpdateCameraPositionAndRotation(_cameraVerticalAngle);
-    }
-
-    private Vector2 GetMouseInput()
-    {
-        return _input.GetMouseAxis();
-    }
-
-    private void RotateBaseOnInput(Vector2 input)
-    {
-        // Left-right
-        transform.Rotate(0, input.x * _mouseSensitivity, 0);
-
-        // Up-down
-        _cameraVerticalAngle -= input.y * _mouseSensitivity;
-        _cameraVerticalAngle = Mathf.Clamp(_cameraVerticalAngle, _cameraMinAngle, _cameraMaxAngle);
     }
 
     private void UpdateNetPositionAndRotation()

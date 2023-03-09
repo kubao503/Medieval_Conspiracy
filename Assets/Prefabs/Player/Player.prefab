@@ -904,6 +904,7 @@ GameObject:
   - component: {fileID: 4874675635625251897}
   - component: {fileID: 122971632290731135}
   - component: {fileID: 6302923811058667756}
+  - component: {fileID: 7409965795271249371}
   - component: {fileID: 3316896897995575696}
   - component: {fileID: 7153721576795878284}
   - component: {fileID: 2735032810346988174}
@@ -990,14 +991,10 @@ MonoBehaviour:
   _vaultLayer:
     serializedVersion: 2
     m_Bits: 4096
-  _walkingSpeed: 4
   _pathFollowingSpeed: 0.035
-  _mouseSensitivity: 0.8
   _attackRange: 2
   _attackCenter: {fileID: 7224193840194540198}
   _damage: 35
-  _cameraMaxAngle: 89.9
-  _cameraMinAngle: -80
   _animationCount: 5
 --- !u!114 &6302923811058667756
 MonoBehaviour:
@@ -1012,6 +1009,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hostileDuration: 8
+--- !u!114 &7409965795271249371
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4619581277976404965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16628a9082fa0c64593b42d1495c1c36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _walkingSpeed: 4
+  _mouseSensitivity: 1.1
+  _cameraMaxAngle: 89.9
+  _cameraMinAngle: -30
 --- !u!114 &3316896897995575696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1094,9 +1107,9 @@ MonoBehaviour:
   _cameraHinge: {fileID: 3607049731743384981}
   _ignoreLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 3904
   _maxDistance: 7
-  _cameraHitboxRadius: 0.1
+  _minDistanceFromObstacle: 0.5
 --- !u!114 &7990860738171086446
 MonoBehaviour:
   m_ObjectHideFlags: 0

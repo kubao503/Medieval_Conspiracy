@@ -19,6 +19,8 @@ public interface IInput
 
 public class InputAdapter : IInput
 {
+    public static InputAdapter Instance = new InputAdapter();
+
     public bool GetKeyDown(KeyCode key)
     {
         return Input.GetKeyDown(key);
