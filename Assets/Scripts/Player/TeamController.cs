@@ -29,4 +29,9 @@ public class TeamController : NetworkBehaviour
     {
         if (IsOwner) MainUIController.Instance.ShowGameEndText(loosingTeam != Team);
     }
+
+    public bool IsTeamMatching(Team team)
+    {
+        return this.Team == team;
+    }
 }

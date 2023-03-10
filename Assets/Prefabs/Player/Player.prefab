@@ -910,6 +910,7 @@ GameObject:
   - component: {fileID: 2735032810346988174}
   - component: {fileID: 11507869509725715}
   - component: {fileID: -6137782588093359805}
+  - component: {fileID: -5284535458108418070}
   - component: {fileID: 7990860738171086446}
   - component: {fileID: 7717659664012735260}
   m_Layer: 8
@@ -985,9 +986,6 @@ MonoBehaviour:
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 832
-  _entranceLayer:
-    serializedVersion: 2
-    m_Bits: 128
   _vaultLayer:
     serializedVersion: 2
     m_Bits: 4096
@@ -1110,6 +1108,21 @@ MonoBehaviour:
     m_Bits: 3904
   _maxDistance: 7
   _minDistanceFromObstacle: 0.5
+--- !u!114 &-5284535458108418070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4619581277976404965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71650e684ac98934cb4b0f6043349a72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _doorLayer:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &7990860738171086446
 MonoBehaviour:
   m_ObjectHideFlags: 0

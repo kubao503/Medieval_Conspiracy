@@ -51,9 +51,6 @@ public class PlayerState : NetworkBehaviour, IDead
         _playerNetState.OnValueChanged += StateUpdate;
         StateUpdate(_currentState, _currentState);
         //_playerController.Disappear();
-
-        if (IsOwner && _playerController.FindBaseEntrance(out var baseController))
-            _playerController.EnterBase(baseController);
     }
 
 

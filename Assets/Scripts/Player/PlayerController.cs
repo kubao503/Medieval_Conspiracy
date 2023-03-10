@@ -9,7 +9,6 @@ public class PlayerController : NetworkBehaviour
     private readonly NetworkVariable<NetworkTransform> _netTransform = new(writePerm: NetworkVariableWritePermission.Owner);
     [SerializeField] private GameObject _cam;
     [SerializeField] private LayerMask _enemyLayer;
-    [SerializeField] private LayerMask _entranceLayer;
     [SerializeField] private LayerMask _vaultLayer;
     [SerializeField] private float _pathFollowingSpeed;
     [SerializeField] private float _attackRange;
@@ -27,9 +26,9 @@ public class PlayerController : NetworkBehaviour
     private IInput _input = InputAdapter.Instance;
 
     private const RigidbodyConstraints default_constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
-    private readonly Vector3 _entranceDetectionCenter = new(0f, -.5f, 0f);
+    private readonly Vector3 _moneyCollectionCenter = new(0f, -.5f, 0f);
     private const float _spawnHeight = 1f;
-    private const float _entranceDetectionRadius = .5f;
+    private const float _moneyCollectionRadius = .5f;
     private const int _moneyCollection = 1;
     private const int _maxMoney = 5;
 
@@ -66,7 +65,7 @@ public class PlayerController : NetworkBehaviour
             if (_input.GetKeyDown(KeyCode.Escape)) Quit();
 
             // Entering entrance
-            if (_input.GetKeyDown(KeyCode.E)) if (!BaseInteraction()) CollectMoney();
+            if (_input.GetKeyDown(KeyCode.E)) CollectMoney();
 
             // Fight
             if (_input.GetLeftMouseButtonDown() && _playerState.CurrentState == State.OUTSIDE)
@@ -123,53 +122,6 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    /// Tries to enter or leave nearby building.
-    /// Returns true if nearby building was found
-    public bool BaseInteraction()
-    {
-        if (!FindBaseEntrance(out var baseController)) return false;
-
-        switch (_playerState.CurrentState)
-        {
-            case State.INSIDE:
-                _playerState.CurrentState = State.OUTSIDE;
-                LeaveBase(baseController);
-                break;
-            case State.OUTSIDE:
-                _playerState.CurrentState = State.INSIDE;
-                RemoveFromHostilePlayersServerRpc();
-                LeaveMoney(baseController);
-                EnterBase(baseController);
-                break;
-        }
-
-        return true;
-    }
-
-
-    public bool FindBaseEntrance(out BaseController baseControllerOut)
-    {
-        baseControllerOut = null;
-
-        // Check for nearby entrances
-        Collider[] entrances = Physics.OverlapSphere(transform.TransformPoint(_entranceDetectionCenter), _entranceDetectionRadius, _entranceLayer);
-
-        // No entraces nearby
-        if (entrances.Length == 0) return false;
-
-        Transform entranceTransform = entrances[0].transform;
-
-        // Check if that's base entrance
-        if (!entranceTransform.gameObject.TryGetComponent<BaseController>(out var baseController)) return false;
-
-        // Check if base's team is the same as player's
-        if (_teamController.Team != baseController.Team) return false;
-
-        baseControllerOut = baseController;
-        return true;
-    }
-
-
     private void LeaveMoney(BaseController baseController)
     {
         // Money
@@ -182,7 +134,7 @@ public class PlayerController : NetworkBehaviour
     private void CollectMoney()
     {
         // Find nearby vaults
-        Collider[] vaults = Physics.OverlapSphere(transform.TransformPoint(_entranceDetectionCenter), _entranceDetectionRadius, _vaultLayer);
+        Collider[] vaults = Physics.OverlapSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius, _vaultLayer);
 
         if (vaults.Length == 0) return; // No money to collect
 
@@ -313,7 +265,7 @@ public class PlayerController : NetworkBehaviour
 
         // Entrance detection sphere
         Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.TransformPoint(_entranceDetectionCenter), _entranceDetectionRadius);
+        Gizmos.DrawWireSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius);
     }
 
 
