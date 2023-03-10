@@ -1,6 +1,13 @@
 using UnityEngine;
 
-public class CameraMover : MonoBehaviour
+
+interface ICameraMover
+{
+    void UpdateCameraPositionAndRotation(float cameraVerticalAngle);
+}
+
+
+public class CameraMover : MonoBehaviour, ICameraMover
 {
     [SerializeField] private Transform _camera;
     [SerializeField] private Transform _cameraHinge;
@@ -77,4 +84,10 @@ public class CameraMover : MonoBehaviour
     {
         return !_raycastAdapter.ObstacleHit;
     }
+}
+
+
+public class FakeCameraMover : MonoBehaviour, ICameraMover
+{
+    public void UpdateCameraPositionAndRotation(float cameraVerticalAngle) { }
 }

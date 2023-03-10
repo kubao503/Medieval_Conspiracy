@@ -1,28 +1,41 @@
 using UnityEngine;
 
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMover : MonoBehaviour
 {
-    [SerializeField] private float _walkingSpeed;
-    [SerializeField] private float _mouseSensitivity;
-    [SerializeField] private float _cameraMaxAngle;
-    [SerializeField] private float _cameraMinAngle;
+    [SerializeField] private float _walkingSpeed = 1f;
+    [SerializeField] private float _mouseSensitivity = 1f;
+    [SerializeField] private float _cameraMaxAngle = 90f;
+    [SerializeField] private float _cameraMinAngle = -90f;
     private IInput _input = InputAdapter.Instance;
     private Rigidbody _rb;
-    private CameraMover _cameraMover;
+    private ICameraMover _cameraMover;
     private float _cameraVerticalAngle = 0f;
+
+    public float CameraVerticalAngle => _cameraVerticalAngle;
+
+    public void SetTestParameters(IInput input)
+    {
+        this._input = input;
+    }
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
-        _cameraMover = GetComponent<CameraMover>();
+        _cameraMover = GetComponent<ICameraMover>();
     }
 
     private void FixedUpdate()
     {
         Move();
-        if (Cursor.lockState != CursorLockMode.None)
+        if (IsCursorLocked())
             Rotate();
+    }
+
+    private bool IsCursorLocked()
+    {
+        return _input.IsCursorLocked();
     }
 
     private void Move()
@@ -56,7 +69,7 @@ public class PlayerMover : MonoBehaviour
 
     private void LeftRightRotationBasedOnInput(Vector2 input)
     {
-        transform.Rotate(0, input.x * _mouseSensitivity, 0);
+        transform.Rotate(0f, input.x * _mouseSensitivity, 0f);
     }
 
     private void UpDownRotationBasedOnInput(Vector2 input)
