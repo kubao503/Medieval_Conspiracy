@@ -9,7 +9,9 @@ public class PlayerState : NetworkBehaviour, IDead
     public event EventHandler StateUpdated;
 
     [SerializeField] private float _hostileDuration;
-    private readonly NetworkVariable<State> _playerNetState = new(value: State.INSIDE);
+    private readonly NetworkVariable<State> _playerNetState = new(
+        value: State.OUTSIDE
+    );
     private PlayerController _playerController;
     private Coroutine _hostileTimerCo;
     private bool _isHostile = false;
@@ -32,7 +34,6 @@ public class PlayerState : NetworkBehaviour, IDead
         get => _playerNetState.Value;
         set
         {
-            _playerNetState.Value = value;
             SetNewStateServerRpc(value);
         }
     }
@@ -41,16 +42,12 @@ public class PlayerState : NetworkBehaviour, IDead
     private void Awake()
     {
         _playerController = GetComponent<PlayerController>();
+        _playerNetState.OnValueChanged += StateUpdate;
     }
 
 
     public override void OnNetworkSpawn()
     {
-        // Subscribe to state changes
-        _playerNetState.OnValueChanged += StateUpdate;
-        StateUpdate(_playerNetState.Value, _playerNetState.Value);
-        //_playerController.Disappear();
-
         if (IsOwner)
             LocalInstance = this;
     }
@@ -102,7 +99,7 @@ public class PlayerState : NetworkBehaviour, IDead
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SetNewStateServerRpc(State newState)
+    private void SetNewStateServerRpc(State newState)
     {
         _playerNetState.Value = newState;
     }

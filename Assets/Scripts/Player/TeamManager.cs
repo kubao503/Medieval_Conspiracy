@@ -91,8 +91,6 @@ public class TeamManager : MonoBehaviour, IServerOnly
         if (!_playersData.TryGetValue(clientId, out var userData)) userData = _defaultPlayerData;
         userData.Ready = ready;
         _playersData[clientId] = userData;
-
-        Debug.Log("Players data count: " + _playersData.Count);
     }
 
 
@@ -107,7 +105,6 @@ public class TeamManager : MonoBehaviour, IServerOnly
     // Server-side
     private void SpawnPlayers(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
-        Debug.Log("Spawning players");
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
             SpawnPlayer(clientId);
     }

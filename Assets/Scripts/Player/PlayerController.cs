@@ -8,7 +8,7 @@ using State = PlayerState.State;
 public class PlayerController : NetworkBehaviour
 {
     private readonly NetworkVariable<NetworkTransform> _netTransform = new(writePerm: NetworkVariableWritePermission.Owner);
-    [SerializeField] private GameObject _cam;
+    [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _enemyLayer;
     [SerializeField] private LayerMask _vaultLayer;
     [SerializeField] private float _pathFollowingSpeed;
@@ -16,9 +16,11 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private Transform _attackCenter;
     [SerializeField] private int _damage;
     [SerializeField] private int _animationCount;
+    private AudioListener _audioListener;
     private PlayerHealth _playerHealth;
     private PlayerState _playerState;
     private TeamController _teamController;
+    private BaseInteractions _baseInteractions;
     private Rigidbody _rb;
     private Renderer[] _renderers;
     private Animator _animator;
@@ -39,9 +41,11 @@ public class PlayerController : NetworkBehaviour
         _rb = GetComponent<Rigidbody>();
         _renderers = GetComponentsInChildren<Renderer>();
         _animator = GetComponent<Animator>();
+        _audioListener = GetComponent<AudioListener>();
         _playerHealth = GetComponent<PlayerHealth>();
         _playerState = GetComponent<PlayerState>();
         _teamController = GetComponent<TeamController>();
+        _baseInteractions = GetComponent<BaseInteractions>();
         _follower = GetComponent<Follower>();
 
         SubscribeToPlayerState();
@@ -60,7 +64,10 @@ public class PlayerController : NetworkBehaviour
             //MainUIController.Instance.SubscribeToRespawnClick(Respawn);
         }
         else
-            Destroy(_cam); // Remove camera
+        {
+            _audioListener.enabled = false;
+            _camera.enabled = false;
+        }
     }
 
 
@@ -204,75 +211,11 @@ public class PlayerController : NetworkBehaviour
     }
 
 
-    public void Disappear()
-    {
-        // Make player invisible
-        foreach (var renderer in _renderers) renderer.enabled = false;
-        _rb.detectCollisions = false;
-        _rb.constraints = RigidbodyConstraints.FreezeAll;
-    }
-
-
-    public void EnterBase(BaseController baseController)
-    {
-        Disappear();
-
-        // Switch cameras
-        _cam.GetComponent<Camera>().enabled = false;
-        baseController.EnableEntranceCamera(true);
-    }
-
-
-    public void Appear()
-    {
-        // Make player visible again
-        foreach (var renderer in _renderers) renderer.enabled = true;
-        _rb.detectCollisions = true;
-        _rb.constraints = default_constraints;
-    }
-
-
-    private void LeaveBase(BaseController baseController)
-    {
-        Appear();
-
-        // Switch cameras
-        _cam.GetComponent<Camera>().enabled = true;
-        baseController.EnableEntranceCamera(false);
-
-        SetLeavingPosition(baseController);
-    }
-
-
-    private void SetLeavingPosition(BaseController baseController)
-    {
-        // Position + rotation left-right
-        var entranceTransform = baseController.EntranceTransform;
-        var leaving_position = entranceTransform.position;
-        leaving_position.y = _spawnHeight;
-        transform.SetPositionAndRotation(leaving_position, entranceTransform.rotation);
-    }
-
-
     public void Respawn()
     {
-        _playerState.SetNewStateServerRpc(State.OUTSIDE);
+        _playerState.CurrentState = State.OUTSIDE;
 
         _playerHealth.RegainHealthServerRpc();
-    }
-
-
-    private void OnDrawGizmosSelected()
-    {
-        // Attack range
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
-        //var halfAttackRange = _attackRange / 2f;
-        Gizmos.DrawWireCube(_attackCenter.position, _attackRange * 2 * Vector3.one);
-
-        // Entrance detection sphere
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius);
     }
 
     public void Quit()
@@ -285,22 +228,88 @@ public class PlayerController : NetworkBehaviour
 #endif
     }
 
-    public void StateUpdated(object sender, EventArgs e)
+    private void StateUpdated(object sender, EventArgs e)
     {
         StateUpdated();
     }
 
-    public void StateUpdated()
+    private void StateUpdated()
     {
         switch (_playerState.CurrentState)
         {
             case State.OUTSIDE:
                 Appear();
+                if (IsOwner)
+                    LeaveBase();
                 break;
             case State.INSIDE:
+                Disappear();
+                if (IsOwner)
+                    EnterBase();
+                break;
             case State.DEAD:
                 Disappear();
                 break;
         }
+    }
+
+    public void Appear()
+    {
+        foreach (var renderer in _renderers) renderer.enabled = true;
+        _rb.detectCollisions = true;
+        _rb.constraints = default_constraints;
+    }
+
+    private void LeaveBase()
+    {
+        SwitchCameras();
+        SetLeavingPosition();
+        SetLeavingRotation();
+    }
+
+    private void SwitchCameras()
+    {
+        var insideBase = _playerState.CurrentState == State.INSIDE;
+        _baseInteractions.BaseController.EnableEntranceCamera(insideBase);
+        _camera.enabled = !insideBase;
+    }
+
+    private void SetLeavingPosition()
+    {
+        var entranceTransform = _baseInteractions.BaseController.EntranceTransform;
+        var leaving_position = entranceTransform.position;
+        leaving_position.y = _spawnHeight;
+        transform.position = leaving_position;
+    }
+
+    private void SetLeavingRotation()
+    {
+        var entranceTransform = _baseInteractions.BaseController.EntranceTransform;
+        transform.rotation = entranceTransform.rotation;
+    }
+
+    public void Disappear()
+    {
+        foreach (var renderer in _renderers) renderer.enabled = false;
+        _rb.detectCollisions = false;
+        _rb.constraints = RigidbodyConstraints.FreezeAll;
+    }
+
+    public void EnterBase()
+    {
+        SwitchCameras();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        // Attack range
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, _attackRange);
+        //var halfAttackRange = _attackRange / 2f;
+        Gizmos.DrawWireCube(_attackCenter.position, _attackRange * 2 * Vector3.one);
+
+        // Entrance detection sphere
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius);
     }
 }

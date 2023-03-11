@@ -910,9 +910,10 @@ GameObject:
   - component: {fileID: 2735032810346988174}
   - component: {fileID: 11507869509725715}
   - component: {fileID: -6137782588093359805}
-  - component: {fileID: -5284535458108418070}
+  - component: {fileID: 1475062450143235813}
   - component: {fileID: 7990860738171086446}
   - component: {fileID: 7717659664012735260}
+  - component: {fileID: 5683008268460875545}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -982,7 +983,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f005d935212e70149890c6b6287ca0e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cam: {fileID: 8989780974003109921}
+  _camera: {fileID: 3484823516636700388}
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 832
@@ -1108,7 +1109,7 @@ MonoBehaviour:
     m_Bits: 3904
   _maxDistance: 7
   _minDistanceFromObstacle: 0.5
---- !u!114 &-5284535458108418070
+--- !u!114 &1475062450143235813
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1159,6 +1160,14 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!81 &5683008268460875545
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4619581277976404965}
+  m_Enabled: 1
 --- !u!1 &5556531573430881048
 GameObject:
   m_ObjectHideFlags: 0
@@ -1970,7 +1979,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4086960790152929890}
   - component: {fileID: 3484823516636700388}
-  - component: {fileID: 6941940108363122469}
   m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: Untagged
@@ -2036,14 +2044,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &6941940108363122469
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8989780974003109921}
-  m_Enabled: 1
 --- !u!1 &9182970040681098438
 GameObject:
   m_ObjectHideFlags: 0

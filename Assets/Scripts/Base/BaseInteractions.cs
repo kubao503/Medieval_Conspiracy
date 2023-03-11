@@ -1,7 +1,8 @@
 using UnityEngine;
+using Unity.Netcode;
 
 
-public class BaseInteractor : MonoBehaviour, INetworkSpawn
+public class BaseInteractions : NetworkBehaviour
 {
     [SerializeField] private LayerMask _doorLayer;
     private IInput _input = InputAdapter.Instance;
@@ -11,16 +12,20 @@ public class BaseInteractor : MonoBehaviour, INetworkSpawn
     private readonly Vector3 _doorDetectionCenter = new(0f, -.5f, 0f);
     private const float _doorDetectionRadius = .5f;
 
+    public BaseController BaseController => _baseController;
+
     private void Awake()
     {
         _teamController = GetComponent<TeamController>();
         _playerState = GetComponent<PlayerState>();
     }
 
-    public void OnNetworkSpawn(bool IsOwner, bool IsServer)
+    public override void OnNetworkSpawn()
     {
         if (IsOwner)
             BaseInteraction();
+        else
+            this.enabled = false;
     }
 
     private void Update()

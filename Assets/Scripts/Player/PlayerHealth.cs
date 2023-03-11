@@ -34,7 +34,7 @@ public class PlayerHealth : Mortal
         _playerState.StopHostileTimer();
 
         _playerController.Disappear();
-        _playerState.SetNewStateServerRpc(PlayerState.State.DEAD);
+        _playerState.CurrentState = PlayerState.State.DEAD;
 
         TeamManager.Instance.DeadPlayerUpdate(GetComponent<TeamController>().Team, OwnerClientId);
     }

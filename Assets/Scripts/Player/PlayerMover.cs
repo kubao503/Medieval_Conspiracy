@@ -1,8 +1,9 @@
 using UnityEngine;
+using Unity.Netcode;
 
 
 [RequireComponent(typeof(Rigidbody))]
-public class PlayerMover : MonoBehaviour
+public class PlayerMover : NetworkBehaviour
 {
     [SerializeField] private float _walkingSpeed = 1f;
     [SerializeField] private float _mouseSensitivity = 1f;
@@ -24,6 +25,12 @@ public class PlayerMover : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody>();
         _cameraMover = GetComponent<ICameraMover>();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+            this.enabled = false;
     }
 
     private void FixedUpdate()
