@@ -1,6 +1,7 @@
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using System;
 
 using State = PlayerState.State;
 
@@ -42,8 +43,14 @@ public class PlayerController : NetworkBehaviour
         _playerState = GetComponent<PlayerState>();
         _teamController = GetComponent<TeamController>();
         _follower = GetComponent<Follower>();
+
+        SubscribeToPlayerState();
     }
 
+    private void SubscribeToPlayerState()
+    {
+        _playerState.StateUpdated += StateUpdated;
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -71,7 +78,7 @@ public class PlayerController : NetworkBehaviour
             if (_input.GetLeftMouseButtonDown() && _playerState.CurrentState == State.OUTSIDE)
             {
                 // Random animation parameters
-                var index = (byte)Random.Range(0, _animationCount);
+                var index = (byte)UnityEngine.Random.Range(0, _animationCount);
 
                 PlayHitAnimation(index);
                 AttackServerRpc(index);
@@ -268,7 +275,6 @@ public class PlayerController : NetworkBehaviour
         Gizmos.DrawWireSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius);
     }
 
-
     public void Quit()
     {
 #if UNITY_STANDALONE
@@ -277,5 +283,24 @@ public class PlayerController : NetworkBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
+    }
+
+    public void StateUpdated(object sender, EventArgs e)
+    {
+        StateUpdated();
+    }
+
+    public void StateUpdated()
+    {
+        switch (_playerState.CurrentState)
+        {
+            case State.OUTSIDE:
+                Appear();
+                break;
+            case State.INSIDE:
+            case State.DEAD:
+                Disappear();
+                break;
+        }
     }
 }

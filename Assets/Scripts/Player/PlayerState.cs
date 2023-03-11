@@ -1,18 +1,18 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using System;
 
 public class PlayerState : NetworkBehaviour, IDead
 {
-    private readonly NetworkVariable<State> _playerNetState = new(value: State.INSIDE);
+    public static PlayerState LocalInstance;
+    public event EventHandler StateUpdated;
 
     [SerializeField] private float _hostileDuration;
-
+    private readonly NetworkVariable<State> _playerNetState = new(value: State.INSIDE);
     private PlayerController _playerController;
-    private State _currentState = State.INSIDE;
     private Coroutine _hostileTimerCo;
     private bool _isHostile = false;
-
 
     public enum State : byte
     {
@@ -22,18 +22,17 @@ public class PlayerState : NetworkBehaviour, IDead
         DEAD
     }
 
-
-    bool IDead.IsDead() => _currentState == State.DEAD;
+    bool IDead.IsDead() => _playerNetState.Value == State.DEAD;
 
 
     public bool IsHostile => _isHostile;
 
 
     public State CurrentState {
-        get => _currentState;
+        get => _playerNetState.Value;
         set
         {
-            _currentState = value;
+            _playerNetState.Value = value;
             SetNewStateServerRpc(value);
         }
     }
@@ -49,10 +48,17 @@ public class PlayerState : NetworkBehaviour, IDead
     {
         // Subscribe to state changes
         _playerNetState.OnValueChanged += StateUpdate;
-        StateUpdate(_currentState, _currentState);
+        StateUpdate(_playerNetState.Value, _playerNetState.Value);
         //_playerController.Disappear();
+
+        if (IsOwner)
+            LocalInstance = this;
     }
 
+    private void StateUpdate(State oldState, State newState)
+    {
+        StateUpdated?.Invoke(this, EventArgs.Empty);
+    }
 
     public override void OnDestroy()
     {
@@ -95,45 +101,17 @@ public class PlayerState : NetworkBehaviour, IDead
             HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
     }
 
-
     [ServerRpc(RequireOwnership = false)]
     public void SetNewStateServerRpc(State newState)
     {
         _playerNetState.Value = newState;
     }
 
-
-    private void StateUpdate(State oldState, State newState)
+    private void OnApplicationFocus(bool focus)
     {
-        //Debug.Log("State update " + oldState + " " + newState);
-
-        switch (oldState, newState)
-        {
-            case (State.DEAD, State.OUTSIDE):
-                _playerController.Appear();
-                if (IsOwner)
-                {
-                    _currentState = newState;
-                    MainUIController.Instance.ShowDeathInfo(false);
-                }
-                break;
-            case (_, State.INSIDE):
-                _playerController.Disappear();
-                break;
-            case (_, State.OUTSIDE):
-                _playerController.Appear();
-                break;
-            case (_, State.DEAD):
-                _playerController.Disappear();
-                if (IsOwner)
-                {
-                    _currentState = newState;
-                    MainUIController.Instance.ShowDeathInfo(true);
-                }
-                break;
-        }
+        if (_playerNetState.Value == State.DEAD)
+            Cursor.lockState = CursorLockMode.None;
+        else
+            Cursor.lockState = CursorLockMode.Locked;
     }
-
-
-    private void OnApplicationFocus(bool focus) => Cursor.lockState = _currentState == State.DEAD ? CursorLockMode.None : CursorLockMode.Locked;
 }

@@ -131,8 +131,26 @@ public class TeamManager : MonoBehaviour, IServerOnly
 
         player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
         SetTeamController(player.GetComponent<TeamController>(), clientId);
+
+        InjectDependencies(player);
     }
 
+    private void InjectDependencies(GameObject player)
+    {
+        if (IsLocalInstance(player))
+            MakeUIControllerSubscribeToPlayerState(player);
+    }
+
+    private bool IsLocalInstance(GameObject player)
+    {
+        return player.GetComponent<NetworkObject>().IsOwner;
+    }
+
+    private void MakeUIControllerSubscribeToPlayerState(GameObject player)
+    {
+        var playerState = player.GetComponent<PlayerState>();
+        MainUIController.Instance.SubscribeToStateUpdate(playerState);
+    }
 
     // Server-side
     public void DeadPlayerUpdate(Team playerTeam, ulong clientId)

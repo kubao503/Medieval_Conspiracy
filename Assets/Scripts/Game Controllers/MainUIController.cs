@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
 
 
 public class MainUIController : MonoBehaviour
@@ -21,14 +22,27 @@ public class MainUIController : MonoBehaviour
     [SerializeField] private float _damageVignetteDuration = 1f;
     private const float _damageVignetteTimeDelta = .025f;
 
-
     private void Awake()
     {
         Instance = this;
-
         _joinCodeText.text = InterSceneStorage.Instance.JoinCode;
     }
 
+    public void SubscribeToStateUpdate(PlayerState playerState)
+    {
+        playerState.StateUpdated += StateUpdated;
+    }
+
+    private void StateUpdated(object sender, EventArgs e)
+    {
+        StateUpdated();
+    }
+
+    private void StateUpdated()
+    {
+        var deathInfoActive = PlayerState.LocalInstance.CurrentState == PlayerState.State.DEAD;
+        ShowDeathInfo(deathInfoActive);
+    }
 
     public void ShowDamageVignete() => StartCoroutine(DamageVigneteFadingCo());
 
@@ -49,17 +63,6 @@ public class MainUIController : MonoBehaviour
     }
 
 
-    public void ShowDeathInfo(bool active)
-    {
-        //if (active) Cursor.lockState = CursorLockMode.None;
-        //else Cursor.lockState = CursorLockMode.Locked;
-        Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
-
-        _deathMessage.enabled = active;
-        //_respawnButton.SetActive(active);
-    }
-
-
     public void ShowGameEndText(bool victory)
     {
         _victoryText.enabled = victory;
@@ -77,4 +80,11 @@ public class MainUIController : MonoBehaviour
 
 
     public void UpdateMoneyText(int money) => _moneyText.text = "Money: " + money.ToString().PadLeft(3);
+
+    public void ShowDeathInfo(bool active)
+    {
+        Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
+        _deathMessage.enabled = active;
+        //_respawnButton.SetActive(active);
+    }
 }
