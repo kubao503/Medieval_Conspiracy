@@ -1,4 +1,4 @@
-interface IDead
+public interface IDead
 {
     bool IsDead();
 }

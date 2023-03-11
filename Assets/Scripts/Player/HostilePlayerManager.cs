@@ -74,7 +74,7 @@ public class HostilePlayerManager : NetworkBehaviour
 
     public void RemoveNonHostilePlayers()
     {
-        _hostilePlayers.RemoveWhere(x => !x.GetComponent<PlayerState>().IsHostile);
+        _hostilePlayers.RemoveWhere(x => !x.GetComponent<PlayerHostility>().IsHostile);
         CheckForNoTargets();
     }
 

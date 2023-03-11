@@ -76,7 +76,7 @@ public class GuardController : Mortal, IDead
         return !_netDead.Value;
     }
 
-    bool IDead.IsDead() => IsAlive();
+    bool IDead.IsDead() => !IsAlive();
 
     private void FixedUpdate()
     {

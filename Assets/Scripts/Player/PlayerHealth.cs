@@ -8,8 +8,14 @@ public class PlayerHealth : Mortal
     private readonly NetworkVariable<HealthType> _netHealth = new();
 
     [SerializeField] private PlayerController _playerController;
-    [SerializeField] private PlayerState _playerState;
+    private PlayerState _playerState;
+    private PlayerHostility _playerHostility;
 
+    private void Awake()
+    {
+        _playerState = GetComponent<PlayerState>();
+        _playerHostility = GetComponent<PlayerHostility>();
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -31,7 +37,7 @@ public class PlayerHealth : Mortal
     protected override void Die()
     {
         HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
-        _playerState.StopHostileTimer();
+        _playerHostility.StopHostileTimer();
 
         _playerController.Disappear();
         _playerState.CurrentState = PlayerState.State.DEAD;

@@ -19,6 +19,7 @@ public class PlayerController : NetworkBehaviour
     private AudioListener _audioListener;
     private PlayerHealth _playerHealth;
     private PlayerState _playerState;
+    private PlayerHostility _playerHostility;
     private TeamController _teamController;
     private BaseInteractions _baseInteractions;
     private Rigidbody _rb;
@@ -44,14 +45,15 @@ public class PlayerController : NetworkBehaviour
         _audioListener = GetComponent<AudioListener>();
         _playerHealth = GetComponent<PlayerHealth>();
         _playerState = GetComponent<PlayerState>();
+        _playerHostility = GetComponent<PlayerHostility>();
         _teamController = GetComponent<TeamController>();
         _baseInteractions = GetComponent<BaseInteractions>();
         _follower = GetComponent<Follower>();
 
-        SubscribeToPlayerState();
+        SubscribeToStateUpdate();
     }
 
-    private void SubscribeToPlayerState()
+    private void SubscribeToStateUpdate()
     {
         _playerState.StateUpdated += StateUpdated;
     }
@@ -186,7 +188,7 @@ public class PlayerController : NetworkBehaviour
 
             // Alarm guards
             HostilePlayerManager.Instance.AddToHostilePlayers(transform);
-            _playerState.RestartHostileTimer();
+            _playerHostility.RestartHostileTimer();
         }
 
         // Play hit animation
