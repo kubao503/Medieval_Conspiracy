@@ -161,10 +161,6 @@ public class PlayerController : NetworkBehaviour
 
 
     [ServerRpc]
-    private void RemoveFromHostilePlayersServerRpc() => HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
-
-
-    [ServerRpc]
     private void AttackServerRpc(byte animationIndex)
     {
         // Find enemies nearby
@@ -240,13 +236,9 @@ public class PlayerController : NetworkBehaviour
         switch (_playerState.CurrentState)
         {
             case State.OUTSIDE:
-                Appear();
-                if (IsOwner)
-                    LeaveBase();
+                LeaveBase();
                 break;
             case State.INSIDE:
-                Disappear();
-                if (IsOwner)
                     EnterBase();
                 break;
             case State.DEAD:
@@ -264,9 +256,14 @@ public class PlayerController : NetworkBehaviour
 
     private void LeaveBase()
     {
-        SwitchCameras();
-        SetLeavingPosition();
-        SetLeavingRotation();
+        Appear();
+
+        if (IsOwner)
+        {
+            SwitchCameras();
+            SetLeavingPosition();
+            SetLeavingRotation();
+        }
     }
 
     private void SwitchCameras()
@@ -299,7 +296,18 @@ public class PlayerController : NetworkBehaviour
 
     public void EnterBase()
     {
-        SwitchCameras();
+        Disappear();
+
+        if (IsOwner)
+            SwitchCameras();
+
+        if (IsServer)
+            RemoveFromHostilePlayers();
+    }
+
+    private void RemoveFromHostilePlayers()
+    {
+        HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
     }
 
     private void OnDrawGizmosSelected()

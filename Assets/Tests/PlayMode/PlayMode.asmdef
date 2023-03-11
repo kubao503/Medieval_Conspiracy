@@ -5,7 +5,9 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Scripts",
-        "Unity.Netcode.Runtime"
+        "Unity.Netcode.Runtime",
+        "Movers",
+        "Raycast"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
