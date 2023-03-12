@@ -5,25 +5,28 @@ using UnityEngine;
 using HealthType = System.Int16;
 
 
-public abstract class HealthController : MonoBehaviour
+public abstract class HealthController : NetworkBehaviour
 {
+    public event EventHandler<DeadEventArgs> DeadUpdated;
+
     private const HealthType _defaultHealth = 100;
-    protected IHealthVar _health;
 
-    public event EventHandler<DeadEventArgs> DeadUpdated
-    {
-        add => _health.DeadUpdated += value;
-        remove => _health.DeadUpdated -= value;
-    }
+    protected abstract HealthType Health { get; set; }
+    public abstract bool IsDead { get; }
 
-    public bool IsDead
+    protected void DeadNotification()
     {
-        get => _health.IsDead;
+        var args = new DeadEventArgs()
+        {
+            IsDead = this.IsDead
+        };
+        DeadUpdated?.Invoke(this, args);
     }
 
     private void Start()
     {
-        this._health.Value = _defaultHealth;
+        if (IsServer)
+            this.Health = _defaultHealth;
     }
 
     [ServerRpc]
@@ -32,13 +35,19 @@ public abstract class HealthController : MonoBehaviour
     // Server-side
     public void RegainHealth()
     {
-        this._health.Value = _defaultHealth;
+        this.Health = _defaultHealth;
     }
 
     // Server-side
     public void TakeDamage(int damage)
     {
-        var newHealth = this._health.Value - damage;
-        this._health.Value = (HealthType)Mathf.Max(0, newHealth);
+        var newHealth = this.Health - damage;
+        this.Health = (HealthType)Mathf.Max(0, newHealth);
     }
+}
+
+
+public class DeadEventArgs : EventArgs
+{
+    public bool IsDead { get; set; }
 }
