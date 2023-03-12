@@ -75,9 +75,9 @@ public class NetHealthVar : IHealthVar
 
 
 // TODO: Change to MonoBehaviour
-public abstract class HealthController : NetworkBehaviour
+public abstract class HealthController : MonoBehaviour
 {
-    [SerializeField] private HealthType _defaultHealth;
+    private const HealthType _defaultHealth = 100;
     protected IHealthVar _health;
 
     public event EventHandler Died
@@ -90,7 +90,7 @@ public abstract class HealthController : NetworkBehaviour
 
     private void Awake()
     {
-        this._health.Value = this._defaultHealth;
+        this._health.Value = _defaultHealth;
     }
 
     [ServerRpc]
@@ -99,7 +99,7 @@ public abstract class HealthController : NetworkBehaviour
     // Server-side
     public void RegainHealth()
     {
-        this._health.Value = this._defaultHealth;
+        this._health.Value = _defaultHealth;
     }
 
     // Server-side
