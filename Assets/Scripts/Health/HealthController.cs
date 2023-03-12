@@ -10,13 +10,16 @@ public abstract class HealthController : MonoBehaviour
     private const HealthType _defaultHealth = 100;
     protected IHealthVar _health;
 
-    public event EventHandler Died
+    public event EventHandler<DeadEventArgs> DeadUpdated
     {
-        add => _health.Died += value;
-        remove => _health.Died -= value;
+        add => _health.DeadUpdated += value;
+        remove => _health.DeadUpdated -= value;
     }
 
-    public bool IsDead => _health.Value == 0;
+    public bool IsDead
+    {
+        get => _health.IsDead;
+    }
 
     private void Start()
     {

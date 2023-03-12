@@ -60,7 +60,7 @@ public class PlayerController : NetworkBehaviour
     private void SubscribeToEvents()
     {
         _playerState.StateUpdated += StateUpdated;
-        _playerHealth.Died += Die;
+        _playerHealth.DeadUpdated += DeadUpdate;
     }
 
     private void StateUpdated(object sender, EventArgs e)
@@ -71,7 +71,7 @@ public class PlayerController : NetworkBehaviour
                 LeaveBase();
                 break;
             case State.INSIDE:
-                    EnterBase();
+                EnterBase();
                 break;
             case State.DEAD:
                 Disappear();
@@ -79,7 +79,13 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    private void Die(object sender, EventArgs e)
+    private void DeadUpdate(object sender, DeadEventArgs e)
+    {
+        if (e.IsDead)
+            Die();
+    }
+
+    private void Die()
     {
         HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
         _playerHostility.StopHostileTimer();
@@ -197,7 +203,7 @@ public class PlayerController : NetworkBehaviour
     {
         // Find enemies nearby
         Collider[] enemiesSphere = Physics.OverlapSphere(transform.position, _attackRange, _enemyLayer);
-        Collider[] enemiesBox = Physics.OverlapBox(_attackCenter.position, Vector3.one * _attackRange, transform.rotation);
+        Collider[] enemiesBox = Physics.OverlapBox(_attackCenter.position, Vector3.one * _attackRange, transform.rotation, _enemyLayer);
 
         foreach (Collider other in Enumerable.Intersect(enemiesSphere, enemiesBox))
         {

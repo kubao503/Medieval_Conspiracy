@@ -5,10 +5,6 @@ using UnityEngine;
 // Server-side
 public class GuardController : NetworkBehaviour
 {
-    private readonly NetworkVariable<NetworkTransform> _netTransform = new();
-    private readonly NetworkVariable<bool> _netDead = new(false);
-
-
     public Transform Target;
     [SerializeField] private LayerMask _playerLayer;
     [SerializeField] private LayerMask _deadGuardLayer;
@@ -17,8 +13,10 @@ public class GuardController : NetworkBehaviour
     [SerializeField] private int _damage;
     [SerializeField] private float _respawnTime;
     [SerializeField] private int _animationCount;
+    private readonly NetworkVariable<NetworkTransform> _netTransform = new();
     private Rigidbody _rigidBody;
     private Animator _animator;
+    private NpcHealth _npcHealth;
     private Coroutine _attackPlayerCo;
     private Vector3 _playerDirection;
     private bool _playerHit = false;
@@ -26,13 +24,24 @@ public class GuardController : NetworkBehaviour
 
     private void Start()
     {
-        _animator = GetComponent<Animator>();
         _rigidBody = GetComponent<Rigidbody>();
+        _animator = GetComponent<Animator>();
+        _npcHealth = GetComponent<NpcHealth>();
 
+        SubscribeToDeadUpdate();
         if (IsServer)
             StartAttackOnPlayer();
-        else
-            SubscribeToDeadStatus();
+    }
+
+    private void SubscribeToDeadUpdate()
+    {
+        _npcHealth.DeadUpdated += DeadUpdate;
+    }
+
+    private void DeadUpdate(object sender, DeadEventArgs args)
+    {
+        if (args.IsDead)
+            Die();
     }
 
     private void StartAttackOnPlayer()
@@ -40,27 +49,15 @@ public class GuardController : NetworkBehaviour
         _attackPlayerCo = StartCoroutine(AttackPlayerCoroutine());
     }
 
-    private void SubscribeToDeadStatus()
-    {
-        _netDead.OnValueChanged += DeadUpdate;
-        DeadUpdate(_netDead.Value, _netDead.Value);
-    }
-
-    private void DeadUpdate(bool _, bool isDead)
-    {
-        if (isDead)
-            FallDown();
-    }
-
     void Update()
     {
         if (IsServer)
-            UpdateNetPositionAndRotation();
+            SetNetTransform();
         else if (IsAlive())
-            transform.SetPositionAndRotation(_netTransform.Value.Position, _netTransform.Value.Rotation);
+            SetTransformBasedOnNetTransform();
     }
 
-    private void UpdateNetPositionAndRotation()
+    private void SetNetTransform()
     {
         _netTransform.Value = new NetworkTransform()
         {
@@ -71,7 +68,14 @@ public class GuardController : NetworkBehaviour
 
     private bool IsAlive()
     {
-        return !_netDead.Value;
+        return !_npcHealth.IsDead;
+    }
+
+    private void SetTransformBasedOnNetTransform()
+    {
+        transform.SetPositionAndRotation(
+            _netTransform.Value.Position,
+            _netTransform.Value.Rotation);
     }
 
     private void FixedUpdate()
@@ -173,20 +177,14 @@ public class GuardController : NetworkBehaviour
 
     private void Die()
     {
-        GuardManager.Instance.RemoveFromActiveGuards(gameObject);
-
-        _netDead.Value = true;
         FallDown();
 
-        StopCoroutine(_attackPlayerCo);
-        StartCoroutine(DyingCoroutine());
-    }
-
-
-    private IEnumerator DyingCoroutine()
-    {
-        yield return new WaitForSeconds(_respawnTime);
-        Destroy(gameObject);
+        if (IsServer)
+        {
+            GuardManager.Instance.RemoveFromActiveGuards(gameObject);
+            StopCoroutine(_attackPlayerCo);
+            StartCoroutine(DyingCoroutine());
+        }
     }
 
     private void FallDown()
@@ -199,6 +197,12 @@ public class GuardController : NetworkBehaviour
     private int GetLayerFromLayerMask(LayerMask layerMask)
     {
         return (int)Mathf.Log(layerMask, 2);
+    }
+
+    private IEnumerator DyingCoroutine()
+    {
+        yield return new WaitForSeconds(_respawnTime);
+        Destroy(gameObject);
     }
 
     private void OnDrawGizmosSelected()

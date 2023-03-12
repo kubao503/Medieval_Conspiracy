@@ -36,7 +36,7 @@ public class MainUIController : MonoBehaviour
 
     private void StateUpdated(object sender, EventArgs e)
     {
-        var deathInfoActive = PlayerState.LocalInstance.CurrentState == PlayerState.State.DEAD;
+        var deathInfoActive = ((PlayerState)sender).CurrentState == PlayerState.State.DEAD;
         ShowDeathInfo(deathInfoActive);
     }
 

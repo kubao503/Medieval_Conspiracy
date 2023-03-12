@@ -4,7 +4,6 @@ using System;
 
 public class PlayerState : NetworkBehaviour
 {
-    public static PlayerState LocalInstance;
     public event EventHandler StateUpdated;
 
     private readonly NetworkVariable<State> _playerNetState = new(State.OUTSIDE);
@@ -32,12 +31,6 @@ public class PlayerState : NetworkBehaviour
     private void Awake()
     {
         _playerNetState.OnValueChanged += StateUpdatedCallback;
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        if (IsOwner)
-            LocalInstance = this;
     }
 
     private void StateUpdatedCallback(State oldState, State newState)

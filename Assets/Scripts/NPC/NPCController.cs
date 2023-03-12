@@ -5,8 +5,6 @@ using UnityEngine;
 
 public class NPCController : NetworkBehaviour
 {
-    private readonly NetworkVariable<bool> _netDead = new();
-
     [SerializeField] private LayerMask _NPCLayer;
     [SerializeField] private LayerMask _deadNPCLayer;
     [SerializeField] private float _respawnTime;
@@ -30,10 +28,9 @@ public class NPCController : NetworkBehaviour
 
     private void Start()
     {
+        SubscribeToDeadUpdate();
         if (IsServer)
             SetRandomSpeedAndPosition();
-        else
-            SubscribeToDeadStatus();
     }
 
     private void SetRandomSpeedAndPosition()
@@ -65,16 +62,15 @@ public class NPCController : NetworkBehaviour
         _follower.StartAtGivenPosition(randomOffset, randomDistance);
     }
 
-    private void SubscribeToDeadStatus()
+    private void SubscribeToDeadUpdate()
     {
-        _netDead.OnValueChanged += DeadUpdate;
-        DeadUpdate(_netDead.Value, _netDead.Value);
+        _npcHealth.DeadUpdated += DeadUpdate;
     }
 
-    private void DeadUpdate(bool _, bool isDead)
+    private void DeadUpdate(object sender, DeadEventArgs args)
     {
-        if (isDead)
-            FallDown();
+        if (args.IsDead)
+            Die();
         else
             StandUp();
     }
@@ -82,9 +78,10 @@ public class NPCController : NetworkBehaviour
     // Server-side
     private void Die()
     {
-        _netDead.Value = true;
         FallDown();
-        StartCoroutine(RespawnCoroutine());
+
+        if (IsServer)
+            StartCoroutine(RespawnCoroutine());
     }
 
     private void FallDown()
@@ -93,6 +90,22 @@ public class NPCController : NetworkBehaviour
         _rigidBody = gameObject.AddComponent<Rigidbody>();
         _rigidBody.AddTorque(torque, ForceMode.VelocityChange);
         gameObject.layer = GetLayerFromLayerMask(_deadNPCLayer);
+    }
+
+    // Server-side
+    private IEnumerator RespawnCoroutine()
+    {
+        yield return new WaitForSeconds(_respawnTime);
+        Respawn();
+    }
+
+    private void Respawn()
+    {
+        StandUp();
+        _npcHealth.RegainHealth();
+        SetRandomSpeedAndPosition();
+        DistanceSync();
+        OffsetSyncClientRpc(_follower.Offset);
     }
 
     private void StandUp()
@@ -105,23 +118,6 @@ public class NPCController : NetworkBehaviour
     private int GetLayerFromLayerMask(LayerMask layerMask)
     {
         return (int)Mathf.Log(layerMask, 2);
-    }
-
-    // Server-side
-    private IEnumerator RespawnCoroutine()
-    {
-        yield return new WaitForSeconds(_respawnTime);
-        Respawn();
-    }
-
-    private void Respawn()
-    {
-        _netDead.Value = false;
-        StandUp();
-        _npcHealth.RegainHealth();
-        SetRandomSpeedAndPosition();
-        DistanceSync();
-        OffsetSyncClientRpc(_follower.Offset);
     }
 
     public void Panic(Vector3 dangerPosition)
