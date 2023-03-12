@@ -7,6 +7,7 @@ using State = PlayerState.State;
 
 public class PlayerController : NetworkBehaviour
 {
+    public static GameObject LocalPlayer;
     private readonly NetworkVariable<NetworkTransform> _netTransform = new(writePerm: NetworkVariableWritePermission.Owner);
     [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _enemyLayer;
@@ -102,6 +103,8 @@ public class PlayerController : NetworkBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             //MainUIController.Instance.SubscribeToRespawnClick(Respawn);
+
+            LocalPlayer = this.gameObject;
         }
         else
         {

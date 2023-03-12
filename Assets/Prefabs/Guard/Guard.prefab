@@ -622,7 +622,7 @@ MonoBehaviour:
   _speed: 0.7
   _attackRange: 1.55
   _damage: 5
-  _respawnTime: 6
+  _respawnTime: 8
   _animationCount: 5
 --- !u!114 &4728756777737627752
 MonoBehaviour:

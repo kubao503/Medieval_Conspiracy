@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System;
+using Unity.Netcode;
 
-
-public class MainUIController : MonoBehaviour
+public class MainUIController : NetworkBehaviour
 {
     public static MainUIController Instance;
 
@@ -17,7 +17,6 @@ public class MainUIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _gameOverText;
     [SerializeField] private TextMeshProUGUI _moneyText;
     [SerializeField] private Image _damageVignette;
-
     [SerializeField] private AnimationCurve _damageVignetteFadingCurve;
     [SerializeField] private float _damageVignetteDuration = 1f;
     private const float _damageVignetteTimeDelta = .025f;
@@ -28,23 +27,24 @@ public class MainUIController : MonoBehaviour
         _joinCodeText.text = InterSceneStorage.Instance.JoinCode;
     }
 
-    public void SubscribeToPlayerEvents(GameObject player)
+    public void SubscribeToLocalPlayerEvents()
     {
+        var player = PlayerController.LocalPlayer;
         player.GetComponent<PlayerState>().StateUpdated += StateUpdated;
         player.GetComponent<PlayerHealth>().HealthUpdated += HealthUpdated;
     }
 
-    private void StateUpdated(object sender, EventArgs e)
+    private void StateUpdated(object sender, EventArgs args)
     {
         var deathInfoActive = ((PlayerState)sender).CurrentState == PlayerState.State.DEAD;
         ShowDeathInfo(deathInfoActive);
     }
 
-    private void HealthUpdated(object sender, HealthEventArgs e)
+    private void HealthUpdated(object sender, HealthEventArgs args)
     {
-        UpdateHealthText(e.NewHealth);
+        UpdateHealthText(args.NewHealth);
 
-        if (DamageWasTaken(e))
+        if (DamageWasTaken(args))
             ShowDamageVignete();
     }
 
@@ -53,9 +53,9 @@ public class MainUIController : MonoBehaviour
         _healthText.text = "Health: " + health.ToString().PadLeft(3);
     }
 
-    private bool DamageWasTaken(HealthEventArgs e)
+    private bool DamageWasTaken(HealthEventArgs args)
     {
-        return e.NewHealth < e.OldHealth;
+        return args.NewHealth < args.OldHealth;
     }
 
     private void ShowDamageVignete()

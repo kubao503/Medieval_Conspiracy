@@ -21,7 +21,7 @@ public class InvalidTeamException : UnityException { }
 /// Must be placed on the same object as BaseManager.
 /// Run only on server
 /// </summary>
-public class TeamManager : MonoBehaviour, IServerOnly
+public class TeamManager : NetworkBehaviour, IServerOnly
 {
     public static TeamManager Instance;
 
@@ -37,8 +37,11 @@ public class TeamManager : MonoBehaviour, IServerOnly
 
 
     // IServerOnly interface
-    public void OnClient() => Destroy(this);
-    public void OnServer() => NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SpawnPlayers;
+    public void OnClient() {}
+    public void OnServer()
+    {
+        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SpawnPlayers;
+    }
 
 
     private void Awake()
@@ -101,14 +104,20 @@ public class TeamManager : MonoBehaviour, IServerOnly
         _playersData[clientId] = userData;
     }
 
-
     // Server-side
     private void SpawnPlayers(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
             SpawnPlayer(clientId);
+
+        MainUISubscriptionClientRpc();
     }
 
+    [ClientRpc]
+    private void MainUISubscriptionClientRpc()
+    {
+        MainUIController.Instance.SubscribeToLocalPlayerEvents();
+    }
 
     // Server-side
     private void SpawnPlayer(ulong clientId)
@@ -122,30 +131,12 @@ public class TeamManager : MonoBehaviour, IServerOnly
         // Spawn player inside base
         var player = Instantiate(_playerPrefab, position, Quaternion.identity);
 
-        InjectDependencies(player);
-
         // Set player team
         player.GetComponent<TeamController>().Team = team;
         //player.GetComponent<PlayerController>().EnteringBuilding();
 
         player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
         SetTeamController(player.GetComponent<TeamController>(), clientId);
-    }
-
-    private void InjectDependencies(GameObject player)
-    {
-        if (IsLocalInstance(player))
-            MakeUIControllerSubscribeToPlayerEvents(player);
-    }
-
-    private bool IsLocalInstance(GameObject player)
-    {
-        return player.GetComponent<NetworkObject>().IsOwner;
-    }
-
-    private void MakeUIControllerSubscribeToPlayerEvents(GameObject player)
-    {
-        MainUIController.Instance.SubscribeToPlayerEvents(player);
     }
 
     // Server-side
