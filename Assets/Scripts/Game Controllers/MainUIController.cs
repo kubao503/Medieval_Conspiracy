@@ -28,24 +28,40 @@ public class MainUIController : MonoBehaviour
         _joinCodeText.text = InterSceneStorage.Instance.JoinCode;
     }
 
-    public void SubscribeToStateUpdate(PlayerState playerState)
+    public void SubscribeToPlayerEvents(GameObject player)
     {
-        playerState.StateUpdated += StateUpdated;
+        player.GetComponent<PlayerState>().StateUpdated += StateUpdated;
+        player.GetComponent<PlayerHealth>().HealthUpdated += HealthUpdated;
     }
 
     private void StateUpdated(object sender, EventArgs e)
-    {
-        StateUpdated();
-    }
-
-    private void StateUpdated()
     {
         var deathInfoActive = PlayerState.LocalInstance.CurrentState == PlayerState.State.DEAD;
         ShowDeathInfo(deathInfoActive);
     }
 
-    public void ShowDamageVignete() => StartCoroutine(DamageVigneteFadingCo());
+    private void HealthUpdated(object sender, HealthEventArgs e)
+    {
+        UpdateHealthText(e.NewHealth);
 
+        if (DamageWasTaken(e))
+            ShowDamageVignete();
+    }
+
+    private void UpdateHealthText(int health)
+    {
+        _healthText.text = "Health: " + health.ToString().PadLeft(3);
+    }
+
+    private bool DamageWasTaken(HealthEventArgs e)
+    {
+        return e.NewHealth < e.OldHealth;
+    }
+
+    private void ShowDamageVignete()
+    {
+        StartCoroutine(DamageVigneteFadingCo());
+    }
 
     private IEnumerator DamageVigneteFadingCo()
     {
@@ -74,9 +90,6 @@ public class MainUIController : MonoBehaviour
     //{
     //    _respawnButton.GetComponent<Button>().onClick.AddListener(action);
     //}
-
-
-    public void UpdateHealthText(int health) => _healthText.text = "Health: " + health.ToString().PadLeft(3);
 
 
     public void UpdateMoneyText(int money) => _moneyText.text = "Money: " + money.ToString().PadLeft(3);

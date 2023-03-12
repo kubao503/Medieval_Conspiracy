@@ -39,6 +39,12 @@ public class PlayerController : NetworkBehaviour
 
     private void Awake()
     {
+        GetComponents();
+        SubscribeToEvents();
+    }
+
+    private void GetComponents()
+    {
         _rb = GetComponent<Rigidbody>();
         _renderers = GetComponentsInChildren<Renderer>();
         _animator = GetComponent<Animator>();
@@ -49,13 +55,39 @@ public class PlayerController : NetworkBehaviour
         _teamController = GetComponent<TeamController>();
         _baseInteractions = GetComponent<BaseInteractions>();
         _follower = GetComponent<Follower>();
-
-        SubscribeToStateUpdate();
     }
 
-    private void SubscribeToStateUpdate()
+    private void SubscribeToEvents()
     {
         _playerState.StateUpdated += StateUpdated;
+        _playerHealth.Died += Die;
+    }
+
+    private void StateUpdated(object sender, EventArgs e)
+    {
+        switch (_playerState.CurrentState)
+        {
+            case State.OUTSIDE:
+                LeaveBase();
+                break;
+            case State.INSIDE:
+                    EnterBase();
+                break;
+            case State.DEAD:
+                Disappear();
+                break;
+        }
+    }
+
+    private void Die(object sender, EventArgs e)
+    {
+        HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
+        _playerHostility.StopHostileTimer();
+
+        Disappear();
+        _playerState.CurrentState = PlayerState.State.DEAD;
+
+        TeamManager.Instance.DeadPlayerUpdate(GetComponent<TeamController>().Team, OwnerClientId);
     }
 
     public override void OnNetworkSpawn()
@@ -224,27 +256,6 @@ public class PlayerController : NetworkBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
-    }
-
-    private void StateUpdated(object sender, EventArgs e)
-    {
-        StateUpdated();
-    }
-
-    private void StateUpdated()
-    {
-        switch (_playerState.CurrentState)
-        {
-            case State.OUTSIDE:
-                LeaveBase();
-                break;
-            case State.INSIDE:
-                    EnterBase();
-                break;
-            case State.DEAD:
-                Disappear();
-                break;
-        }
     }
 
     public void Appear()

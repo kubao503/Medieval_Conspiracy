@@ -44,7 +44,6 @@ public class BaseManager : MonoBehaviour, IServerOnly
     // Server-side
     private void SetBases(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
-        Debug.Log("Base setting");
         _buildingHolder = GameObject.Find("Building Holder").transform;
 
         List<Transform> entrances = new();

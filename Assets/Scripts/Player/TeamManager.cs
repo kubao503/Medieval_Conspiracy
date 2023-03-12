@@ -122,20 +122,20 @@ public class TeamManager : MonoBehaviour, IServerOnly
         // Spawn player inside base
         var player = Instantiate(_playerPrefab, position, Quaternion.identity);
 
+        InjectDependencies(player);
+
         // Set player team
         player.GetComponent<TeamController>().Team = team;
         //player.GetComponent<PlayerController>().EnteringBuilding();
 
         player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
         SetTeamController(player.GetComponent<TeamController>(), clientId);
-
-        InjectDependencies(player);
     }
 
     private void InjectDependencies(GameObject player)
     {
         if (IsLocalInstance(player))
-            MakeUIControllerSubscribeToPlayerState(player);
+            MakeUIControllerSubscribeToPlayerEvents(player);
     }
 
     private bool IsLocalInstance(GameObject player)
@@ -143,10 +143,9 @@ public class TeamManager : MonoBehaviour, IServerOnly
         return player.GetComponent<NetworkObject>().IsOwner;
     }
 
-    private void MakeUIControllerSubscribeToPlayerState(GameObject player)
+    private void MakeUIControllerSubscribeToPlayerEvents(GameObject player)
     {
-        var playerState = player.GetComponent<PlayerState>();
-        MainUIController.Instance.SubscribeToStateUpdate(playerState);
+        MainUIController.Instance.SubscribeToPlayerEvents(player);
     }
 
     // Server-side
