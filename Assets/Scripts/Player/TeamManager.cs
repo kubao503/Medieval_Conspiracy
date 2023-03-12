@@ -4,7 +4,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using NickType = StringContainer;
-//public record struct PlayerData(string Nick, Team Team, bool Ready, TeamController TeamController, bool Dead);
 
 public enum Team : byte
 {
@@ -17,11 +16,9 @@ public enum Team : byte
 public class InvalidTeamException : UnityException { }
 
 
-/// <summary>
 /// Must be placed on the same object as BaseManager.
 /// Run only on server
-/// </summary>
-public class TeamManager : NetworkBehaviour, IServerOnly
+public class TeamManager : NetworkBehaviour
 {
     public static TeamManager Instance;
 
@@ -32,17 +29,7 @@ public class TeamManager : NetworkBehaviour, IServerOnly
     private readonly Dictionary<ulong, (string Nick, Team Team, bool Ready, TeamController TeamController, bool Dead)> _playersData = new();
     private BaseManager _baseManager;
 
-
     public bool AllPlayersReady { get => _playersData.All(x => x.Value.Ready); }
-
-
-    // IServerOnly interface
-    public void OnClient() {}
-    public void OnServer()
-    {
-        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SpawnPlayers;
-    }
-
 
     private void Awake()
     {
@@ -51,22 +38,12 @@ public class TeamManager : NetworkBehaviour, IServerOnly
         _baseManager = GetComponent<BaseManager>();
     }
 
-
-    //public void AddNewPlayer(ulong clientId)
-    //{
-    //    _playersData.TryGetValue(clientId, out var playerData);
-    //    playerData.Ready = false;
-    //    _playersData.Add(clientId, playerData);
-    //}
-
-
     public void NickUpdate(string nick, ulong clientId)
     {
         if (!_playersData.TryGetValue(clientId, out var userData)) userData = _defaultPlayerData;
         userData.Nick = nick;
         _playersData[clientId] = userData;
     }
-
 
     public void NickTablesUpdate()
     {
@@ -78,7 +55,6 @@ public class TeamManager : NetworkBehaviour, IServerOnly
         _lobbyNetwork.NickTablesUpdateClientRpc(teamANicks, teamBNicks);
     }
 
-
     public void TeamUpdate(Team team, ulong clientId)
     {
         //_playersData.TryGetValue(clientId, out var userData);
@@ -86,7 +62,6 @@ public class TeamManager : NetworkBehaviour, IServerOnly
         userData.Team = team;
         _playersData[clientId] = userData;
     }
-
 
     public void ReadyUpdate(bool ready, ulong clientId)
     {
@@ -96,7 +71,6 @@ public class TeamManager : NetworkBehaviour, IServerOnly
         _playersData[clientId] = userData;
     }
 
-
     private void SetTeamController(TeamController teamController, ulong clientId)
     {
         _playersData.TryGetValue(clientId, out var userData);
@@ -105,8 +79,9 @@ public class TeamManager : NetworkBehaviour, IServerOnly
     }
 
     // Server-side
-    private void SpawnPlayers(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    public void SpawnPlayers()
     {
+        Debug.Log("Spawning players");
         foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
             SpawnPlayer(clientId);
 
@@ -158,7 +133,6 @@ public class TeamManager : NetworkBehaviour, IServerOnly
         // Game over
         EndGame(playerTeam);
     }
-
 
     private void EndGame(Team loosingTeam)
     {

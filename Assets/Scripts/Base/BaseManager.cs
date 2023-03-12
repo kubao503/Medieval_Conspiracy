@@ -5,22 +5,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
-/// <summary>
 /// Must be placed on the same object as TeamManager.
 /// Run only on server
-/// </summary>
-public class BaseManager : MonoBehaviour, IServerOnly
+public class BaseManager : NetworkBehaviour
 {
     [SerializeField] private GameObject _teamEntrancePrefab;
     private Transform _buildingHolder;
     private Vector3 _entrancePosA;
     private Vector3 _entrancePosB;
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SetBases;
+        else
+            Destroy(this);
 
-    // IServerOnly interface
-    public void OnClient() => Destroy(this);
-    public void OnServer() => NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SetBases;
-
+        base.OnNetworkSpawn();
+    }
 
     public Vector3 EntrancePosition(Team team)
     {
@@ -44,6 +46,7 @@ public class BaseManager : MonoBehaviour, IServerOnly
     // Server-side
     private void SetBases(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
+        Debug.Log("Setting bases");
         _buildingHolder = GameObject.Find("Building Holder").transform;
 
         List<Transform> entrances = new();
@@ -67,8 +70,9 @@ public class BaseManager : MonoBehaviour, IServerOnly
         // Adding BaseControllers for two chosen buildings
         SetRandomBase(entrances, Team.A);
         SetRandomBase(entrances, Team.B);
-    }
 
+        TeamManager.Instance.SpawnPlayers();
+    }
 
     // Server-side
     private void SetRandomBase(List<Transform> entrances, Team team)
@@ -78,16 +82,10 @@ public class BaseManager : MonoBehaviour, IServerOnly
         Transform entranceTransform = entrances[index];
         entrances.RemoveAt(index);
 
-
         // Adding team base entrace prefab
         var teamEntrance = Instantiate(_teamEntrancePrefab, entranceTransform.position, entranceTransform.rotation);
         teamEntrance.GetComponent<BaseController>().Team = team;
         teamEntrance.GetComponent<NetworkObject>().Spawn(true);
-
-        //Debug.Log("Base position " + teamEntrance.transform.position);
-        //Debug.Break();
-
-        //entrance.gameObject.GetComponent<BaseController>().Team = team;
 
         switch (team)
         {
@@ -95,7 +93,5 @@ public class BaseManager : MonoBehaviour, IServerOnly
             case Team.B: _entrancePosB = entranceTransform.position; break;
             default: throw new InvalidTeamException();
         }
-
-        //Debug.Log(entrances.Count + " entrances left");
     }
 }
