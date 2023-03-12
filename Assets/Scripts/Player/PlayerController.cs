@@ -173,14 +173,14 @@ public class PlayerController : NetworkBehaviour
             if (gameObject == other.gameObject) continue;
 
             // Check if object is dead
-            if (other.GetComponent<IDead>().IsDead()) continue;
+            if (other.GetComponent<HealthController>().IsDead) continue;
 
             // Check if that's a player from the same team
             if (other.gameObject.TryGetComponent<TeamController>(out var otherTeamController)
                 && otherTeamController.Team == _teamController.Team) continue;
 
             // Hit
-            other.GetComponent<Mortal>().TakeDamage(_damage);
+            other.GetComponent<HealthController>().TakeDamage(_damage);
 
             // Alarm guards
             HostilePlayerManager.Instance.AddToHostilePlayers(transform);

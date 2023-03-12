@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 // Server-side
-public class GuardController : Mortal, IDead
+public class GuardController : NetworkBehaviour
 {
     private readonly NetworkVariable<NetworkTransform> _netTransform = new();
     private readonly NetworkVariable<bool> _netDead = new(false);
@@ -24,7 +24,7 @@ public class GuardController : Mortal, IDead
     private bool _playerHit = false;
     private readonly Vector3 _torque = new(.2f, .1f, .2f);
 
-    private new void Start()
+    private void Start()
     {
         _animator = GetComponent<Animator>();
         _rigidBody = GetComponent<Rigidbody>();
@@ -33,8 +33,6 @@ public class GuardController : Mortal, IDead
             StartAttackOnPlayer();
         else
             SubscribeToDeadStatus();
-
-        base.Start();
     }
 
     private void StartAttackOnPlayer()
@@ -75,8 +73,6 @@ public class GuardController : Mortal, IDead
     {
         return !_netDead.Value;
     }
-
-    bool IDead.IsDead() => !IsAlive();
 
     private void FixedUpdate()
     {
@@ -149,7 +145,7 @@ public class GuardController : Mortal, IDead
 
     private void AttackPlayer(Collider player)
     {
-        player.GetComponent<Mortal>().TakeDamage(_damage);
+        player.GetComponent<PlayerHealth>().TakeDamage(_damage);
         _playerHit = true;
     }
 
@@ -175,7 +171,7 @@ public class GuardController : Mortal, IDead
     }
 
 
-    protected override void Die()
+    private void Die()
     {
         GuardManager.Instance.RemoveFromActiveGuards(gameObject);
 

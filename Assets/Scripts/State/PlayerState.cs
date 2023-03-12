@@ -2,7 +2,7 @@ using Unity.Netcode;
 using UnityEngine;
 using System;
 
-public class PlayerState : NetworkBehaviour, IDead
+public class PlayerState : NetworkBehaviour
 {
     public static PlayerState LocalInstance;
     public event EventHandler StateUpdated;
@@ -16,8 +16,6 @@ public class PlayerState : NetworkBehaviour, IDead
         ON_PATH,
         DEAD
     }
-
-    bool IDead.IsDead() => _playerNetState.Value == State.DEAD;
 
     public State CurrentState
     {

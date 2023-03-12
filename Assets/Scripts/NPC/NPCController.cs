@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 
 
-public class NPCController : Mortal, IDead
+public class NPCController : NetworkBehaviour
 {
     private readonly NetworkVariable<bool> _netDead = new();
 
@@ -17,23 +17,23 @@ public class NPCController : Mortal, IDead
     private readonly Vector3 torque = new(.2f, .1f, .2f);
     private Rigidbody _rigidBody;
     private Follower _follower;
+    private NpcHealth _npcHealth;
     private AudioSource _audioSource;
     private float _defaultSpeed;
 
     private void Awake()
     {
         _follower = GetComponent<Follower>();
+        _npcHealth = GetComponent<NpcHealth>();
         _audioSource = GetComponent<AudioSource>();
     }
 
-    private new void Start()
+    private void Start()
     {
         if (IsServer)
             SetRandomSpeedAndPosition();
         else
             SubscribeToDeadStatus();
-
-        base.Start();
     }
 
     private void SetRandomSpeedAndPosition()
@@ -80,14 +80,12 @@ public class NPCController : Mortal, IDead
     }
 
     // Server-side
-    protected override void Die()
+    private void Die()
     {
         _netDead.Value = true;
         FallDown();
         StartCoroutine(RespawnCoroutine());
     }
-
-    bool IDead.IsDead() => _netDead.Value;
 
     private void FallDown()
     {
@@ -120,7 +118,7 @@ public class NPCController : Mortal, IDead
     {
         _netDead.Value = false;
         StandUp();
-        RegainHealth();
+        _npcHealth.RegainHealth();
         SetRandomSpeedAndPosition();
         DistanceSync();
         OffsetSyncClientRpc(_follower.Offset);

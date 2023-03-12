@@ -1000,6 +1000,7 @@ GameObject:
   - component: {fileID: 2090265594445723836}
   - component: {fileID: 6834146520806975290}
   - component: {fileID: 864048429256900507}
+  - component: {fileID: 3553713503153671326}
   - component: {fileID: 2287291840344099624}
   - component: {fileID: 6891405181807147884}
   - component: {fileID: 7507792661210212530}
@@ -1053,7 +1054,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0689cdfb073143b4b8c843d0fc7760f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultHealth: 100
   _NPCLayer:
     serializedVersion: 2
     m_Bits: 512
@@ -1065,6 +1065,19 @@ MonoBehaviour:
   _minSpeed: 0.018
   _maxSpeed: 0.037
   _runSpeed: 0.045
+--- !u!114 &3553713503153671326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8135818112090637229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7212c56cb5ad4714ca050da360f37d3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _defaultHealth: 100
 --- !u!114 &2287291840344099624
 MonoBehaviour:
   m_ObjectHideFlags: 0
