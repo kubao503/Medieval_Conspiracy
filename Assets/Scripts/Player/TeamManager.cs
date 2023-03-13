@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+
 using NickType = StringContainer;
+
 
 public enum Team : byte
 {
@@ -13,11 +14,6 @@ public enum Team : byte
 }
 
 
-public class InvalidTeamException : UnityException { }
-
-
-/// Must be placed on the same object as BaseManager.
-/// Run only on server
 public class TeamManager : NetworkBehaviour
 {
     public static TeamManager Instance;
@@ -27,15 +23,12 @@ public class TeamManager : NetworkBehaviour
 
     private readonly (string, Team, bool, TeamController, bool) _defaultPlayerData = ("", Team.A, false, null, false);
     private readonly Dictionary<ulong, (string Nick, Team Team, bool Ready, TeamController TeamController, bool Dead)> _playersData = new();
-    private BaseManager _baseManager;
 
-    public bool AllPlayersReady { get => _playersData.All(x => x.Value.Ready); }
+    public bool AllPlayersReady => _playersData.All(x => x.Value.Ready);
 
     private void Awake()
     {
         Instance = this;
-
-        _baseManager = GetComponent<BaseManager>();
     }
 
     public void NickUpdate(string nick, ulong clientId)
@@ -71,47 +64,45 @@ public class TeamManager : NetworkBehaviour
         _playersData[clientId] = userData;
     }
 
-    private void SetTeamController(TeamController teamController, ulong clientId)
-    {
-        _playersData.TryGetValue(clientId, out var userData);
-        userData.TeamController = teamController;
-        _playersData[clientId] = userData;
-    }
-
-    // Server-side
     public void SpawnPlayers()
     {
-        Debug.Log("Spawning players");
-        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
+        var connectedClientsIds = NetworkManager.Singleton.ConnectedClientsIds;
+        foreach (var clientId in connectedClientsIds)
             SpawnPlayer(clientId);
 
         MainUISubscriptionClientRpc();
+    }
+
+    private void SpawnPlayer(ulong clientId)
+    {
+        // Get player team
+        Team team = _playersData[clientId].Team;
+
+        var player = SpawnPlayerInsideTeamBase(team);
+
+        var teamController = player.GetComponent<TeamController>();
+        teamController.Team = team;
+        player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
+        SetTeamController(teamController, clientId);
+    }
+
+    private GameObject SpawnPlayerInsideTeamBase(Team team)
+    {
+        var basePosition = BaseManager.Instance.GetBasePosition(team);
+        return Instantiate(_playerPrefab, basePosition, Quaternion.identity);
+    }
+
+    private void SetTeamController(TeamController teamController, ulong clientId)
+    {
+        var userData = _playersData[clientId];
+        userData.TeamController = teamController;
+        _playersData[clientId] = userData;
     }
 
     [ClientRpc]
     private void MainUISubscriptionClientRpc()
     {
         MainUIController.Instance.SubscribeToLocalPlayerEvents();
-    }
-
-    // Server-side
-    private void SpawnPlayer(ulong clientId)
-    {
-        // Get player team
-        Team team = _playersData[clientId].Team;
-
-        // Get position of team base entrance
-        var position = _baseManager.EntrancePosition(team);
-
-        // Spawn player inside base
-        var player = Instantiate(_playerPrefab, position, Quaternion.identity);
-
-        // Set player team
-        player.GetComponent<TeamController>().Team = team;
-        //player.GetComponent<PlayerController>().EnteringBuilding();
-
-        player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
-        SetTeamController(player.GetComponent<TeamController>(), clientId);
     }
 
     // Server-side
@@ -142,3 +133,6 @@ public class TeamManager : NetworkBehaviour
         }
     }
 }
+
+
+public class InvalidTeamException : UnityException { }
