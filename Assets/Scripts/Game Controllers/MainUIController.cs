@@ -27,7 +27,8 @@ public class MainUIController : NetworkBehaviour
         _joinCodeText.text = InterSceneStorage.Instance.JoinCode;
     }
 
-    public void SubscribeToLocalPlayerEvents()
+    [ClientRpc]
+    public void SubscribeToLocalPlayerEventsClientRpc()
     {
         var player = PlayerController.LocalPlayer;
         player.GetComponent<PlayerState>().StateUpdated += StateUpdated;

@@ -10,7 +10,7 @@ public enum Team : byte
 {
     A,
     B,
-    TOTAL
+    Total
 }
 
 
@@ -19,10 +19,9 @@ public class TeamManager : NetworkBehaviour
     public static TeamManager Instance;
 
     [SerializeField] private LobbyNetwork _lobbyNetwork;
-    [SerializeField] private GameObject _playerPrefab;
 
-    private readonly (string, Team, bool, TeamController, bool) _defaultPlayerData = ("", Team.A, false, null, false);
-    private readonly Dictionary<ulong, (string Nick, Team Team, bool Ready, TeamController TeamController, bool Dead)> _playersData = new();
+    private readonly (string, Team, bool, bool) _defaultPlayerData = ("", Team.A, false, false);
+    private readonly Dictionary<ulong, (string Nick, Team Team, bool Ready, bool Dead)> _playersData = new();
 
     public bool AllPlayersReady => _playersData.All(x => x.Value.Ready);
 
@@ -68,41 +67,10 @@ public class TeamManager : NetworkBehaviour
     {
         var connectedClientsIds = NetworkManager.Singleton.ConnectedClientsIds;
         foreach (var clientId in connectedClientsIds)
-            SpawnPlayer(clientId);
-
-        MainUISubscriptionClientRpc();
-    }
-
-    private void SpawnPlayer(ulong clientId)
-    {
-        // Get player team
-        Team team = _playersData[clientId].Team;
-
-        var player = SpawnPlayerInsideTeamBase(team);
-
-        var teamController = player.GetComponent<TeamController>();
-        teamController.Team = team;
-        player.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
-        SetTeamController(teamController, clientId);
-    }
-
-    private GameObject SpawnPlayerInsideTeamBase(Team team)
-    {
-        var basePosition = BaseManager.Instance.GetBasePosition(team);
-        return Instantiate(_playerPrefab, basePosition, Quaternion.identity);
-    }
-
-    private void SetTeamController(TeamController teamController, ulong clientId)
-    {
-        var userData = _playersData[clientId];
-        userData.TeamController = teamController;
-        _playersData[clientId] = userData;
-    }
-
-    [ClientRpc]
-    private void MainUISubscriptionClientRpc()
-    {
-        MainUIController.Instance.SubscribeToLocalPlayerEvents();
+        {
+            Team team = _playersData[clientId].Team;
+            PlayerSpawner.Instance.SpawnPlayer(clientId, team);
+        }
     }
 
     // Server-side
@@ -128,9 +96,13 @@ public class TeamManager : NetworkBehaviour
     private void EndGame(Team loosingTeam)
     {
         foreach (var playerData in _playersData.Values)
-        {
-            playerData.TeamController.EndGameClientRpc(loosingTeam);
-        }
+            EndGameClientRpc(loosingTeam);
+    }
+
+    [ClientRpc]
+    public void EndGameClientRpc(Team loosingTeam)
+    {
+        TeamController.LocalPlayerInstance.EndGame(loosingTeam);
     }
 }
 

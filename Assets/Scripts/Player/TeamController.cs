@@ -4,12 +4,12 @@ using Unity.Netcode;
 public class TeamController : NetworkBehaviour
 {
     public static TeamController LocalPlayerInstance;
-    private readonly NetworkVariable<Team> _netTeam = new(value: Team.TOTAL, writePerm: NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<Team> _netTeam = new(value: Team.Total, writePerm: NetworkVariableWritePermission.Owner);
 
 
     public Team Team
     {
-        get => _netTeam.Value == Team.TOTAL ? throw new InvalidTeamException() : _netTeam.Value;
+        get => _netTeam.Value == Team.Total ? throw new InvalidTeamException() : _netTeam.Value;
         set => _netTeam.Value = value;
     }
 
@@ -22,15 +22,13 @@ public class TeamController : NetworkBehaviour
         base.OnNetworkSpawn();
     }
 
-
-    [ClientRpc]
-    public void EndGameClientRpc(Team loosingTeam)
-    {
-        if (IsOwner) MainUIController.Instance.ShowGameEndText(loosingTeam != Team);
-    }
-
     public bool IsTeamMatching(Team team)
     {
         return this.Team == team;
+    }
+
+    public void EndGame(Team loosingTeam)
+    {
+        MainUIController.Instance.ShowGameEndText(loosingTeam != Team);
     }
 }

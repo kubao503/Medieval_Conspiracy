@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,7 +10,7 @@ public class BaseManager : NetworkBehaviour
 
     [SerializeField] private GameObject _teamEntrancePrefab;
     private Transform _buildingHolder; // TODO: Make Serialized
-    private Vector3[] _entrancePositions = new Vector3[(int)Team.TOTAL];
+    private Vector3[] _entrancePositions = new Vector3[(int)Team.Total];
 
     private void Awake()
     {
@@ -48,6 +47,7 @@ public class BaseManager : NetworkBehaviour
         SetTeamBaseAtRandomEntrance(entrances, Team.B);
 
         TeamManager.Instance.SpawnPlayers();
+        MainUIController.Instance.SubscribeToLocalPlayerEventsClientRpc();
     }
 
     private void FindAndSetBuildingHolder()
@@ -88,7 +88,7 @@ public class BaseManager : NetworkBehaviour
 
     private void CheckEntranceCount(IList<Transform> entrances)
     {
-        Debug.Assert(entrances.Count >= (int)Team.TOTAL, "Too few entrances found");
+        Debug.Assert(entrances.Count >= (int)Team.Total, "Too few entrances found");
     }
 
     private void SetTeamBaseAtRandomEntrance(IList<Transform> entrances, Team team)

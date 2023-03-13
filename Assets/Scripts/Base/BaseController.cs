@@ -5,7 +5,7 @@ public class BaseController : NetworkBehaviour
 {
     [SerializeField] private Camera _camera;
 
-    private readonly NetworkVariable<Team> _netTeam = new(value: Team.TOTAL);
+    private readonly NetworkVariable<Team> _netTeam = new(value: Team.Total);
     private int _money = 0;
 
     public Team Team
