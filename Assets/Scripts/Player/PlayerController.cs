@@ -61,40 +61,41 @@ public class PlayerController : NetworkBehaviour
     private void SubscribeToEvents()
     {
         _playerState.StateUpdated += StateUpdated;
-        _playerHealth.DeadUpdated += DeadUpdate;
     }
 
-    private void StateUpdated(object sender, EventArgs e)
+    private void StateUpdated(object sender, StateEventArgs args)
     {
-        switch (_playerState.CurrentState)
+        switch (args.OldState, args.NewState)
         {
-            case State.OUTSIDE:
-                LeaveBase();
+            case (_, State.OnPath):
+                StartPathFollowing();
                 break;
-            case State.INSIDE:
+            case (State.OnPath, State.Outside):
+                StopPathFollowing();
+                break;
+            case (_, State.Inside):
                 EnterBase();
                 break;
-            case State.DEAD:
-                Disappear();
+            case (State.Inside, State.Outside):
+                LeaveBase();
+                break;
+            case (_, State.Dead):
+                Die();
                 break;
         }
     }
 
-    private void DeadUpdate(object sender, DeadEventArgs e)
-    {
-        if (e.IsDead)
-            Die();
-    }
-
     private void Die()
     {
-        HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
-        _playerHostility.StopHostileTimer();
-
         Disappear();
-        _playerState.CurrentState = PlayerState.State.DEAD;
 
-        TeamManager.Instance.DeadPlayerUpdate(GetComponent<TeamController>().Team, OwnerClientId);
+        if (IsServer)
+        {
+            HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
+            _playerHostility.StopHostileTimer();
+
+            TeamManager.Instance.DeadPlayerUpdate(_teamController.Team, OwnerClientId);
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -113,19 +114,20 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-
     private void Update()
     {
         if (IsOwner)
         {
             // Quit game
-            if (_input.GetKeyDown(KeyCode.Escape)) Quit();
+            if (_input.GetKeyDown(KeyCode.Escape))
+                Quit();
 
             // Entering entrance
-            if (_input.GetKeyDown(KeyCode.E)) CollectMoney();
+            if (_input.GetKeyDown(KeyCode.E))
+                CollectMoney();
 
             // Fight
-            if (_input.GetLeftMouseButtonDown() && _playerState.CurrentState == State.OUTSIDE)
+            if (_input.GetLeftMouseButtonDown() && _playerState.CurrentState == State.Outside)
             {
                 // Random animation parameters
                 var index = (byte)UnityEngine.Random.Range(0, _animationCount);
@@ -135,7 +137,8 @@ public class PlayerController : NetworkBehaviour
             }
 
             // Path following
-            if (_input.GetKeyDown(KeyCode.Q)) PathFollowing();
+            if (_input.GetKeyDown(KeyCode.Q))
+                _playerState.TogglePathFollowingStateServerRpc();
 
             // Showing cursor
             if (_input.GetKeyDown(KeyCode.LeftControl))
@@ -161,22 +164,20 @@ public class PlayerController : NetworkBehaviour
         };
     }
 
-    private void PathFollowing()
+    private void StartPathFollowing()
     {
-        if (_playerState.CurrentState == State.ON_PATH)
+        if (IsOwner)
         {
-            // Stop path following
-            _follower.enabled = false;
-            _playerState.CurrentState = State.OUTSIDE;
-        }
-        else if (_playerState.CurrentState == State.OUTSIDE)
-        {
-            // Start path following
             _follower.enabled = true;
             _follower.StartAtCurrentPosition();
             _follower.Speed = _pathFollowingSpeed;
-            _playerState.CurrentState = State.ON_PATH;
         }
+    }
+
+    private void StopPathFollowing()
+    {
+        // if (IsOwner) can be omitted
+        _follower.enabled = false;
     }
 
     private void LeaveMoney(BaseController baseController)
@@ -252,7 +253,7 @@ public class PlayerController : NetworkBehaviour
 
     public void Respawn()
     {
-        _playerState.CurrentState = State.OUTSIDE;
+        //_playerState.CurrentState = State.OUTSIDE;
 
         _playerHealth.RegainHealthServerRpc();
     }
@@ -288,7 +289,7 @@ public class PlayerController : NetworkBehaviour
 
     private void SwitchCameras()
     {
-        var insideBase = _playerState.CurrentState == State.INSIDE;
+        var insideBase = _playerState.CurrentState == State.Inside;
         _baseInteractions.BaseController.EnableEntranceCamera(insideBase);
         _camera.enabled = !insideBase;
     }

@@ -9,6 +9,7 @@ public class PlayerHealth : HealthController
     public event EventHandler<HealthEventArgs> HealthUpdated;
 
     private NetworkVariable<HealthType> _netHealth = new();
+    private PlayerState _playerState;
 
     protected override HealthType Health
     {
@@ -18,17 +19,21 @@ public class PlayerHealth : HealthController
 
     public override bool IsDead => _netHealth.Value == 0;
 
-    public PlayerHealth()
+    private void Awake()
     {
         _netHealth.OnValueChanged += HealthUpdate;
+        _playerState = GetComponent<PlayerState>();
     }
 
-    private void HealthUpdate(HealthType oldHealth, HealthType  newHealth)
+    private void HealthUpdate(HealthType oldHealth, HealthType newHealth)
     {
         HealthNotification(oldHealth, newHealth);
 
         if (IsDeadUpdated(oldHealth, newHealth))
+        {
+            _playerState.DeadUpdate(IsDead);
             base.DeadNotification();
+        }
     }
 
     private void HealthNotification(HealthType oldHealth, HealthType  newHealth)

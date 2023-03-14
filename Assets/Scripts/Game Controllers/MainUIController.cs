@@ -35,9 +35,9 @@ public class MainUIController : NetworkBehaviour
         player.GetComponent<PlayerHealth>().HealthUpdated += HealthUpdated;
     }
 
-    private void StateUpdated(object sender, EventArgs args)
+    private void StateUpdated(object sender, StateEventArgs args)
     {
-        var deathInfoActive = ((PlayerState)sender).CurrentState == PlayerState.State.DEAD;
+        var deathInfoActive = args.NewState == PlayerState.State.Dead || args.NewState == PlayerState.State.Ragdoll;
         ShowDeathInfo(deathInfoActive);
     }
 

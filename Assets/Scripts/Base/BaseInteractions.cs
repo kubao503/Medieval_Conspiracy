@@ -36,8 +36,9 @@ public class BaseInteractions : NetworkBehaviour
 
     private void BaseInteraction()
     {
-        if (TryFindBaseDoor())
-            ToggleState();
+        var success = TryFindBaseDoor();
+        if (success)
+            ChangePlayerState();
     }
 
     private bool TryFindBaseDoor()
@@ -80,11 +81,8 @@ public class BaseInteractions : NetworkBehaviour
         return _teamController.IsTeamMatching(baseController.Team);
     }
 
-    private void ToggleState()
+    private void ChangePlayerState()
     {
-        if (_playerState.CurrentState == PlayerState.State.OUTSIDE)
-            _playerState.CurrentState = PlayerState.State.INSIDE;
-        else if (_playerState.CurrentState == PlayerState.State.INSIDE)
-            _playerState.CurrentState = PlayerState.State.OUTSIDE;
+        _playerState.ToggleBaseStateServerRpc();
     }
 }
