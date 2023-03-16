@@ -991,7 +991,6 @@ MonoBehaviour:
   _vaultLayer:
     serializedVersion: 2
     m_Bits: 4096
-  _pathFollowingSpeed: 0.035
   _attackRange: 2
   _attackCenter: {fileID: 7224193840194540198}
   _damage: 35
@@ -1036,8 +1035,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab87f0709fab70241a4dff1c352a9a9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultHealth: 100
-  _playerController: {fileID: 122971632290731135}
 --- !u!114 &7153721576795878284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1073,10 +1070,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4619581277976404965}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a6e230ffe363284ebfa9eb0ac693dc3, type: 3}
+  m_Script: {fileID: 11500000, guid: 2274319438e824d4bbd5c52b3baf5cad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Offset: 0
 --- !u!114 &11507869509725715
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1154,7 +1150,7 @@ MonoBehaviour:
   AutoObjectParentSync: 1
 --- !u!95 &7717659664012735260
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1171,7 +1167,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!81 &5683008268460875545
 AudioListener:
   m_ObjectHideFlags: 0

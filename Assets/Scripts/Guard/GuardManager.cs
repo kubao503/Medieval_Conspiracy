@@ -62,7 +62,7 @@ public class GuardManager : NetworkBehaviour
     {
         _raidActive = true;
 
-        var playerDistanceOnPath = Follower.NpcPath.path.GetClosestDistanceAlongPath(playerPosition);
+        var playerDistanceOnPath = Follower.MainPath.path.GetClosestDistanceAlongPath(playerPosition);
         for (int i = 0; i < _guardCount; ++i)
             SpawnGuard(playerDistanceOnPath);
         _updateTargetsCo = StartCoroutine(UpdateTargetsCo());
@@ -130,12 +130,12 @@ public class GuardManager : NetworkBehaviour
         // Set position
         // Distance on path relative to player
         var guardRelativeDistance = (Random.value < .5) ? _spawnRadius : -_spawnRadius;
-        
+
         // Distance on path
         var distance = playerDistanceOnPath + guardRelativeDistance;
 
         // Distance on path in world space
-        var position = Follower.NpcPath.path.GetPointAtDistance(distance);
+        var position = Follower.MainPath.path.GetPointAtDistance(distance);
         position.y = _guardPrefab.transform.position.y;
 
         //newGuard.transform.position = circle3D * _spawnRadius + playerPosition;

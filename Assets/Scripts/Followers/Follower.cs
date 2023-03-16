@@ -2,70 +2,52 @@ using PathCreation;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Follower : NetworkBehaviour
+
+public abstract class Follower : NetworkBehaviour
 {
-    public static PathCreator NpcPath = null;
-    public float Offset = 0f;
+    private static PathCreator _mainPath;
+    private const float _minSpeed = 0.01f;
+    private const float _maxSpeed = 0.03f;
 
-    private readonly NetworkVariable<float> netSpeed = new();
-    private readonly Quaternion rotationOffset = Quaternion.Euler(0f, 0f, 90f);
-    private readonly Quaternion reversingRotation = Quaternion.Euler(0f, 180f, 0f);
-    private float distanceTravelled = 0f;
-    private PathCreator pathCreator;
+    protected float _distanceTravelled = 0f;
+    protected readonly Quaternion _rotationOffset = Quaternion.Euler(0f, 0f, 90f);
+    private readonly Quaternion _reversingRotation = Quaternion.Euler(0f, 180f, 0f);
 
-    public float Distance
+    protected abstract float Speed { get; set; }
+    protected abstract float Offset { get; set; }
+
+    // TODO: Make protected
+    public static PathCreator MainPath
     {
-        get => this.distanceTravelled;
-        set => this.distanceTravelled = value;
+        get
+        {
+            SetMainPath();
+            return _mainPath;
+        }
     }
 
-    public Vector3 Direction
+    private static void SetMainPath()
     {
-        get => this.pathCreator.path.GetDirectionAtDistance(this.distanceTravelled);
+        if (_mainPath == null)
+            _mainPath = GameObject.Find("NPC Path").GetComponent<PathCreator>();
     }
 
-    public float Speed
+    protected float GetRandomSpeed()
     {
-        set => this.netSpeed.Value = value;
+        var randomSpeed = Random.Range(_minSpeed, _maxSpeed);
+        return randomSpeed;
     }
 
-    public float PathLength
+    protected bool MatchesWithPathDirection(Vector3 direction)
     {
-        get => this.pathCreator.path.length;
+        var pathDirection = GetPathDirection();
+        var angle = Vector3.Angle(pathDirection, direction);
+        return angle < 90f;
     }
 
-    private void Awake()
+    private Vector3 GetPathDirection()
     {
-        if (NpcPath == null) NpcPath = GameObject.Find("NPC Path").GetComponent<PathCreator>();
-        this.pathCreator = NpcPath;
-    }
-
-    public void StartAtGivenPosition(float offset, float distance)
-    {
-        this.Offset = offset;
-        this.distanceTravelled = distance;
-    }
-
-    public void StartAtCurrentPosition()
-    {
-        var distanceAlongPath = this.pathCreator.path.GetClosestDistanceAlongPath(transform.position);
-        this.distanceTravelled = distanceAlongPath;
-
-        SetInitRotation(distanceAlongPath);
-        SetInitOffset(distanceAlongPath);
-    }
-
-    private void SetInitRotation(float distanceAlongPath)
-    {
-        transform.rotation = this.pathCreator.path.GetRotationAtDistance(distanceAlongPath) * this.rotationOffset;
-    }
-
-    private void SetInitOffset(float distanceAlongPath)
-    {
-        var closestPoint = this.pathCreator.path.GetPointAtDistance(distanceAlongPath);
-        var offsetVector = transform.position - closestPoint;
-        var localOffsetVector = transform.InverseTransformDirection(offsetVector);
-        this.Offset = localOffsetVector.x;
+        return MainPath.path.GetDirectionAtDistance(this._distanceTravelled);
     }
 
     private void FixedUpdate()
@@ -80,45 +62,42 @@ public class Follower : NetworkBehaviour
 
     private void UpdateDistanceTravelled()
     {
-        this.distanceTravelled = Mathf.Repeat(this.distanceTravelled + this.netSpeed.Value, this.pathCreator.path.length);
+        this._distanceTravelled = Mathf.Repeat(this._distanceTravelled + this.Speed, MainPath.path.length);
     }
 
     private Vector3 GetPosition()
     {
-        var positionAlongPath = this.pathCreator.path.GetPointAtDistance(this.distanceTravelled);
-        var offsetVector = this.Offset * transform.right;
-        if (IsReversed())
-            offsetVector = GetOppositeVector(offsetVector);
+        var positionAlongPath = GetPointAtDistance();
+        var offsetVector = GetOffsetVector();
 
         return positionAlongPath + offsetVector + Vector3.up;
     }
 
-    private Vector3 GetOppositeVector(Vector3 vector)
+    protected Vector3 GetPointAtDistance()
     {
-        return -vector;
+        return MainPath.path.GetPointAtDistance(this._distanceTravelled);
     }
 
-    private Quaternion GetRotation()
+    private Vector3 GetOffsetVector()
     {
-        var rotation = this.pathCreator.path.GetRotationAtDistance(this.distanceTravelled) * this.rotationOffset;
+        return this.Offset * transform.right;
+    }
+
+    protected Quaternion GetRotation()
+    {
+        var rotation = MainPath.path.GetRotationAtDistance(this._distanceTravelled) * this._rotationOffset;
         if (IsReversed())
-            rotation = Rotate180Degrees(rotation);
+            rotation = GetOppositeRotation(rotation);
         return rotation;
     }
 
     private bool IsReversed()
     {
-        return this.netSpeed.Value < 0f;
+        return this.Speed < 0f;
     }
 
-    private Quaternion Rotate180Degrees(Quaternion rotation)
+    private Quaternion GetOppositeRotation(Quaternion rotation)
     {
-        return this.reversingRotation * rotation;
-    }
-
-    // Set speed value while continuing to walk in the same direction
-    public void SetSpeed(float speed)
-    {
-        this.netSpeed.Value = speed * Mathf.Sign(this.netSpeed.Value);
+        return this._reversingRotation * rotation;
     }
 }

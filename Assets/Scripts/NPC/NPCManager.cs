@@ -89,7 +89,7 @@ public class NPCManager : NetworkBehaviour
     /// </summary>
     public void Walk()
     {
-        foreach (var npc in _spawnedNPCs) npc.SetToDefaultSpeed();
+        foreach (var npc in _spawnedNPCs) npc.SetSpeedToDefault();
     }
 
 

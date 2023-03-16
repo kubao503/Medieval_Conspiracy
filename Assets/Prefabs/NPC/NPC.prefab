@@ -1061,10 +1061,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2048
   _respawnTime: 3
-  _spawnRange: 1
-  _minSpeed: 0.018
-  _maxSpeed: 0.037
-  _runSpeed: 0.045
 --- !u!114 &3553713503153671326
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1077,7 +1073,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7212c56cb5ad4714ca050da360f37d3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _defaultHealth: 100
 --- !u!114 &2287291840344099624
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1113,10 +1108,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8135818112090637229}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a6e230ffe363284ebfa9eb0ac693dc3, type: 3}
+  m_Script: {fileID: 11500000, guid: 65f46003fb6019d49ac429057e2afab6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Offset: 0
 --- !u!114 &7507792661210212530
 MonoBehaviour:
   m_ObjectHideFlags: 0

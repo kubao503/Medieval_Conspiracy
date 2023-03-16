@@ -12,7 +12,6 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _enemyLayer;
     [SerializeField] private LayerMask _vaultLayer;
-    [SerializeField] private float _pathFollowingSpeed;
     [SerializeField] private float _attackRange;
     [SerializeField] private Transform _attackCenter;
     [SerializeField] private int _damage;
@@ -26,7 +25,7 @@ public class PlayerController : NetworkBehaviour
     private Rigidbody _rb;
     private Renderer[] _renderers;
     private Animator _animator;
-    private Follower _follower;
+    private PlayerFollower _follower;
     private int _money = 0;
     private IInput _input = InputAdapter.Instance;
 
@@ -55,7 +54,7 @@ public class PlayerController : NetworkBehaviour
         _playerHostility = GetComponent<PlayerHostility>();
         _teamController = GetComponent<TeamController>();
         _baseInteractions = GetComponent<BaseInteractions>();
-        _follower = GetComponent<Follower>();
+        _follower = GetComponent<PlayerFollower>();
     }
 
     private void SubscribeToEvents()
@@ -167,11 +166,7 @@ public class PlayerController : NetworkBehaviour
     private void StartPathFollowing()
     {
         if (IsOwner)
-        {
             _follower.enabled = true;
-            _follower.StartAtCurrentPosition();
-            _follower.Speed = _pathFollowingSpeed;
-        }
     }
 
     private void StopPathFollowing()
