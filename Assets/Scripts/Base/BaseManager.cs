@@ -109,8 +109,8 @@ public class BaseManager : NetworkBehaviour
     private void SetTeamEntrancePrefab(Transform entrance, Team team)
     {
         var teamEntrance = Instantiate(_teamEntrancePrefab, entrance.position, entrance.rotation);
-        teamEntrance.GetComponent<BaseController>().Team = team;
         teamEntrance.GetComponent<NetworkObject>().Spawn(true);
+        teamEntrance.GetComponent<BaseController>().Team = team;
     }
 
     private void UpdateEntrancePositions(Transform entrance, Team team)

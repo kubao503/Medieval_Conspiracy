@@ -16,8 +16,8 @@ public class PlayerSpawner : MonoBehaviour
     public void SpawnPlayer(ulong clientId, Team team)
     {
         InstantiatePlayerInsideTeamBase(team);
-        SetPlayerTeam(team);
         SpawnAsPlayerObjectOfClient(clientId);
+        SetPlayerTeam(team);
     }
 
     private void InstantiatePlayerInsideTeamBase(Team team)
@@ -26,15 +26,15 @@ public class PlayerSpawner : MonoBehaviour
         _player = Instantiate(_playerPrefab, basePosition, Quaternion.identity);
     }
 
-    private void SetPlayerTeam(Team team)
-    {
-        var teamController = _player.GetComponent<TeamController>();
-        teamController.Team = team;
-    }
-
     private void SpawnAsPlayerObjectOfClient(ulong clientId)
     {
         var networkObject = _player.GetComponent<NetworkObject>();
         networkObject.SpawnAsPlayerObject(clientId, true);
+    }
+
+    private void SetPlayerTeam(Team team)
+    {
+        var teamController = _player.GetComponent<TeamController>();
+        teamController.Team = team;
     }
 }

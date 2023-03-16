@@ -20,7 +20,7 @@ public class BaseInteractions : NetworkBehaviour
         _playerState = GetComponent<PlayerState>();
     }
 
-    public override void OnNetworkSpawn()
+    private void Start()
     {
         if (IsOwner)
             BaseInteraction();
