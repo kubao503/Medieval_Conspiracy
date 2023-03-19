@@ -46,7 +46,7 @@ public class PlayerController : NetworkBehaviour
     private void GetComponents()
     {
         _rb = GetComponent<Rigidbody>();
-        _renderers = GetComponentsInChildren<Renderer>();
+        _renderers = GetComponentsInChildren<Renderer>(true);
         _animator = GetComponent<Animator>();
         _audioListener = GetComponent<AudioListener>();
         _playerHealth = GetComponent<PlayerHealth>();
