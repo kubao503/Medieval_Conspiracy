@@ -6,12 +6,9 @@ using UnityEngine;
 public abstract class Follower : NetworkBehaviour
 {
     private static PathCreator _mainPath;
-    private const float _minSpeed = 0.01f;
-    private const float _maxSpeed = 0.03f;
 
+    [SerializeField] protected FollowerParameters _parameters;
     protected float _distanceTravelled = 0f;
-    protected readonly Quaternion _rotationOffset = Quaternion.Euler(0f, 0f, 90f);
-    private readonly Quaternion _reversingRotation = Quaternion.Euler(0f, 180f, 0f);
 
     protected abstract float Speed { get; set; }
     protected abstract float Offset { get; set; }
@@ -34,7 +31,9 @@ public abstract class Follower : NetworkBehaviour
 
     protected float GetRandomSpeed()
     {
-        var randomSpeed = Random.Range(_minSpeed, _maxSpeed);
+        var randomSpeed = Random.Range(
+            _parameters.MinSpeed,
+            _parameters.MaxSpeed);
         return randomSpeed;
     }
 
@@ -85,7 +84,7 @@ public abstract class Follower : NetworkBehaviour
 
     protected Quaternion GetRotation()
     {
-        var rotation = MainPath.path.GetRotationAtDistance(this._distanceTravelled) * this._rotationOffset;
+        var rotation = MainPath.path.GetRotationAtDistance(this._distanceTravelled) * _parameters.RotationOffset;
         if (IsReversed())
             rotation = GetOppositeRotation(rotation);
         return rotation;
@@ -98,6 +97,6 @@ public abstract class Follower : NetworkBehaviour
 
     private Quaternion GetOppositeRotation(Quaternion rotation)
     {
-        return this._reversingRotation * rotation;
+        return _parameters.ReversingRotation * rotation;
     }
 }

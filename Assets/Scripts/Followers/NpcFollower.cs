@@ -4,9 +4,6 @@ using Unity.Netcode;
 
 public class NpcFollower : Follower
 {
-    private static float _runSpeed = 1f;
-    private static float _offsetRange = 1f;
-
     private readonly NetworkVariable<float> _netSpeed = new();
     private readonly NetworkVariable<float> _netOffset = new();
     private float _defaultSpeed = 1f;
@@ -42,7 +39,8 @@ public class NpcFollower : Follower
 
     private void SetRandomOffset()
     {
-        var randomOffset = Random.Range(-_offsetRange, _offsetRange);
+        var randomOffset = Random.Range(
+            -_parameters.OffsetRange, _parameters.OffsetRange);
         this.Offset = randomOffset;
     }
 
@@ -60,7 +58,7 @@ public class NpcFollower : Follower
     {
         var directionNpcToDanger = dangerPosition - transform.position;
 
-        var newSpeed = _runSpeed;
+        var newSpeed = _parameters.RunSpeed;
         if (MatchesWithPathDirection(directionNpcToDanger))
             newSpeed *= -1;
         this.Speed = newSpeed;
