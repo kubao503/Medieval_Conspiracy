@@ -22,6 +22,13 @@ public class PlayerFollower : Follower
     {
         // Order of following calls must be preserved
         SetInitDistance();
+
+        if (IsTooFarFromPath())
+        {
+            this.enabled = false;
+            return;
+        }
+
         SetInitSpeed();
         SetInitRotation();
         SetInitOffset();
@@ -30,6 +37,20 @@ public class PlayerFollower : Follower
     private void SetInitDistance()
     {
         this._distanceTravelled = MainPath.path.GetClosestDistanceAlongPath(transform.position);
+    }
+
+    private bool IsTooFarFromPath()
+    {
+        var closestPointOnPath = MainPath.path.GetPointAtDistance(_distanceTravelled);
+        var distance = GetDistance2D(closestPointOnPath, transform.position);
+        return distance > _parameters.OffsetRange;
+    }
+
+    private float GetDistance2D(Vector3 first, Vector3 second)
+    {
+        Vector2 first2D = new(first.x, first.z);
+        Vector2 second2D = new(second.x, second.z);
+        return Vector2.Distance(first2D, second2D);
     }
 
     private void SetInitSpeed()
