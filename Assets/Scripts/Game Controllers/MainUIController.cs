@@ -37,8 +37,20 @@ public class MainUIController : NetworkBehaviour
 
     private void StateUpdated(object sender, StateEventArgs args)
     {
-        var deathInfoActive = args.NewState == PlayerState.State.Dead || args.NewState == PlayerState.State.Ragdoll;
-        ShowDeathInfo(deathInfoActive);
+        var deathInfoActive = IsPlayerDead(args.NewState);
+        SetDeathInfoActive(deathInfoActive);
+    }
+
+    private bool IsPlayerDead(PlayerState.State state)
+    {
+        return state == PlayerState.State.Dead
+            || state == PlayerState.State.Ragdoll;
+    }
+
+    public void SetDeathInfoActive(bool active)
+    {
+        _deathMessage.enabled = active;
+        //_respawnButton.SetActive(active);
     }
 
     private void HealthUpdated(object sender, HealthEventArgs args)
@@ -94,11 +106,4 @@ public class MainUIController : NetworkBehaviour
 
 
     public void UpdateMoneyText(int money) => _moneyText.text = "Money: " + money.ToString().PadLeft(3);
-
-    public void ShowDeathInfo(bool active)
-    {
-        Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
-        _deathMessage.enabled = active;
-        //_respawnButton.SetActive(active);
-    }
 }

@@ -94,20 +94,6 @@ public class PlayerState : NetworkBehaviour
         };
         StateUpdated?.Invoke(this, args);
     }
-
-    // TODO: Remove following from here
-    private void OnApplicationFocus(bool focus)
-    {
-        SetCursorLockBasedOnState();
-    }
-
-    private void SetCursorLockBasedOnState()
-    {
-        if (_playerNetState.Value == State.Dead)
-            Cursor.lockState = CursorLockMode.None;
-        else
-            Cursor.lockState = CursorLockMode.Locked;
-    }
 }
 
 

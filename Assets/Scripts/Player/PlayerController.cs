@@ -100,12 +100,7 @@ public class PlayerController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (IsOwner)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            //MainUIController.Instance.SubscribeToRespawnClick(Respawn);
-
             LocalPlayer = this.gameObject;
-        }
         else
         {
             _audioListener.enabled = false;
@@ -138,12 +133,6 @@ public class PlayerController : NetworkBehaviour
             // Path following
             if (_input.GetKeyDown(KeyCode.Q))
                 _playerState.TogglePathFollowingStateServerRpc();
-
-            // Showing cursor
-            if (_input.GetKeyDown(KeyCode.LeftControl))
-                Cursor.lockState = CursorLockMode.None;
-            else if (_input.GetKeyUp(KeyCode.LeftControl))
-                Cursor.lockState = CursorLockMode.Locked;
 
             UpdateNetPositionAndRotation();
         }
