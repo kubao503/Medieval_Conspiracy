@@ -11,6 +11,7 @@ public class BaseInteractions : NetworkBehaviour
     private PlayerState _playerState;
     private readonly Vector3 _doorDetectionCenter = new(0f, -.5f, 0f);
     private const float _doorDetectionRadius = .5f;
+    private const KeyCode _baseInteractionKey = KeyCode.E;
 
     public BaseController BaseController => _baseController;
 
@@ -20,17 +21,29 @@ public class BaseInteractions : NetworkBehaviour
         _playerState = GetComponent<PlayerState>();
     }
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
         if (IsOwner)
-            BaseInteraction();
+            _playerState.StateUpdated += StateUpdated;
         else
             this.enabled = false;
     }
 
+    private void StateUpdated(object sender, StateEventArgs args)
+    {
+        if (args.NewState == PlayerState.State.TeamSet)
+            DoBaseInteractionAfterTeamSet();
+    }
+
+    private void DoBaseInteractionAfterTeamSet()
+    {
+        BaseInteraction();
+        _playerState.StateUpdated -= StateUpdated;
+    }
+
     private void Update()
     {
-        if (_input.GetKeyDown(KeyCode.E))
+        if (_input.GetKeyDown(_baseInteractionKey))
             BaseInteraction();
     }
 

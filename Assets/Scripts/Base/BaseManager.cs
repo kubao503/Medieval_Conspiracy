@@ -34,6 +34,8 @@ public class BaseManager : NetworkBehaviour
         string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
         SetBases();
+        TeamManager.Instance.SpawnPlayers();
+        MainUIController.Instance.SubscribeToLocalPlayerEventsClientRpc();
     }
 
     private void SetBases()
@@ -45,9 +47,6 @@ public class BaseManager : NetworkBehaviour
 
         SetTeamBaseAtRandomEntrance(entrances, Team.A);
         SetTeamBaseAtRandomEntrance(entrances, Team.B);
-
-        TeamManager.Instance.SpawnPlayers();
-        MainUIController.Instance.SubscribeToLocalPlayerEventsClientRpc();
     }
 
     private void FindAndSetBuildingHolder()

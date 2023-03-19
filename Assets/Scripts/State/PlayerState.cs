@@ -8,16 +8,18 @@ public class PlayerState : NetworkBehaviour
     public event EventHandler<StateEventArgs> StateUpdated;
 
     private readonly NetworkVariable<State> _playerNetState = new(_defaultState);
-    private const State _defaultState = State.Outside;
+    private const State _defaultState = State.Spawning;
     private const float _ragdollDuration = 3f;
 
     public enum State : byte
     {
-        Outside,
+        Spawning,
+        TeamSet,
         Inside,
+        Outside,
         OnPath,
-        Dead,
-        Ragdoll
+        Ragdoll,
+        Dead
     }
 
     public State CurrentState => _playerNetState.Value;
@@ -46,10 +48,10 @@ public class PlayerState : NetworkBehaviour
 
     private void ToggleBaseState()
     {
-        if (CurrentState == PlayerState.State.Outside)
-            _playerNetState.Value = PlayerState.State.Inside;
-        else if (CurrentState == PlayerState.State.Inside)
-            _playerNetState.Value = PlayerState.State.Outside;
+        if (CurrentState == State.Outside || CurrentState == State.TeamSet)
+            _playerNetState.Value = State.Inside;
+        else if (CurrentState == State.Inside)
+            _playerNetState.Value = State.Outside;
     }
 
     [ServerRpc]
@@ -64,6 +66,18 @@ public class PlayerState : NetworkBehaviour
             _playerNetState.Value = State.Outside;
         else if (CurrentState == State.Outside)
             _playerNetState.Value = State.OnPath;
+    }
+
+    [ServerRpc]
+    public void TeamSetServerRpc()
+    {
+        TeamSet();
+    }
+
+    private void TeamSet()
+    {
+        if (CurrentState == State.Spawning)
+            _playerNetState.Value = State.TeamSet;
     }
 
     private void Awake()

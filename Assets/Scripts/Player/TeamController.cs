@@ -4,22 +4,14 @@ using Unity.Netcode;
 public class TeamController : NetworkBehaviour
 {
     public static TeamController LocalPlayerInstance;
-    private readonly NetworkVariable<Team> _netTeam = new(value: Team.Total, writePerm: NetworkVariableWritePermission.Owner);
 
+    private readonly NetworkVariable<Team> _netTeam = new(Team.Total);
+    private PlayerState _playerState;
 
     public Team Team
     {
         get => _netTeam.Value == Team.Total ? throw new InvalidTeamException() : _netTeam.Value;
         set => _netTeam.Value = value;
-    }
-
-
-    public override void OnNetworkSpawn()
-    {
-        //Debug.Log("LocalPlayerInstance setting by " + gameObject.name);
-        if (IsLocalPlayer) LocalPlayerInstance = this;
-
-        base.OnNetworkSpawn();
     }
 
     public bool IsTeamMatching(Team team)
@@ -30,5 +22,27 @@ public class TeamController : NetworkBehaviour
     public void EndGame(Team loosingTeam)
     {
         MainUIController.Instance.ShowGameEndText(loosingTeam != Team);
+    }
+
+    private void Awake()
+    {
+        _playerState = GetComponent<PlayerState>();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+        {
+            LocalPlayerInstance = this;
+            _netTeam.OnValueChanged += TeamUpdated;
+        }
+
+        base.OnNetworkSpawn();
+    }
+
+    private void TeamUpdated(Team oldTeam, Team newTeam)
+    {
+        if (newTeam != Team.Total)
+            _playerState.TeamSetServerRpc();
     }
 }
