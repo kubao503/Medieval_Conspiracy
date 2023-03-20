@@ -73,9 +73,17 @@ public class PlayerFollower : Follower
 
     private void SetInitOffset()
     {
+        var offset = GetInitOffset();
+        if (IsReversed())
+            offset *= -1;
+        this.Offset = offset;
+    }
+
+    private float GetInitOffset()
+    {
         var closestPoint = GetPointAtDistance();
         var offsetVector = transform.position - closestPoint;
         var localOffsetVector = transform.InverseTransformDirection(offsetVector);
-        this.Offset = localOffsetVector.x;
+        return localOffsetVector.x;
     }
 }

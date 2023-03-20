@@ -79,7 +79,10 @@ public abstract class Follower : NetworkBehaviour
 
     private Vector3 GetOffsetVector()
     {
-        return this.Offset * transform.right;
+        var offsetVector = this.Offset * transform.right;
+        if (IsReversed())
+            offsetVector *= -1;
+        return offsetVector;
     }
 
     protected Quaternion GetRotation()
@@ -90,7 +93,7 @@ public abstract class Follower : NetworkBehaviour
         return rotation;
     }
 
-    private bool IsReversed()
+    protected bool IsReversed()
     {
         return this.Speed < 0f;
     }
