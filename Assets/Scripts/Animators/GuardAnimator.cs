@@ -1,33 +1,17 @@
-using UnityEngine;
 using Unity.Netcode;
 
 
-public class GuardAnimator : NetworkBehaviour
+public class GuardAnimator : BaseAnimator
 {
-    private Animator _animator;
-    private int _animationsCount;
-
-    public void PlayHitAnimation()
+    public override void PlayHitAnimation()
     {
-        var index = GetRandomHitAnimationIndex();
+        var index = GetRandomAnimationIndex();
         PlayHitAnimationClientRpc(index);
-    }
-
-    private byte GetRandomHitAnimationIndex()
-    {
-        return (byte)Random.Range(0, _animationsCount);
     }
 
     [ClientRpc]
     private void PlayHitAnimationClientRpc(byte index)
     {
-        _animator.SetInteger("Index", index);
-        _animator.SetTrigger("Play");
-    }
-
-    private void Awake()
-    {
-        _animator = GetComponent<Animator>();
-        _animationsCount = _animator.runtimeAnimatorController.animationClips.Length;
+        PlayHitAnimation(index);
     }
 }

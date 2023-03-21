@@ -1,28 +1,13 @@
-using UnityEngine;
 using Unity.Netcode;
 
 
-public class PlayerAnimator : NetworkBehaviour
+public class PlayerAnimator : BaseAnimator
 {
-    private Animator _animator;
-    private int _animationsCount;
-
-    public void PlayHitAnimation()
+    public override void PlayHitAnimation()
     {
         var index = GetRandomAnimationIndex();
         PlayHitAnimation(index);
         PlayHitAnimationServerRpc(index);
-    }
-
-    private byte GetRandomAnimationIndex()
-    {
-        return (byte)Random.Range(0, _animationsCount);
-    }
-
-    private void PlayHitAnimation(byte index)
-    {
-        _animator.SetInteger("Index", index);
-        _animator.SetTrigger("Play");
     }
 
     [ServerRpc]
@@ -36,11 +21,5 @@ public class PlayerAnimator : NetworkBehaviour
     {
         if (!IsOwner) // Owner has already played this animation
             PlayHitAnimation(index);
-    }
-
-    private void Awake()
-    {
-        _animator = GetComponent<Animator>();
-        _animationsCount = _animator.runtimeAnimatorController.animationClips.Length;
     }
 }

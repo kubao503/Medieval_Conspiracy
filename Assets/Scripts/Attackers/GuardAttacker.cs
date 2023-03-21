@@ -1,30 +1,25 @@
 using System.Collections;
 using UnityEngine;
-using Unity.Netcode;
 
 
-public class GuardAttacker : NetworkBehaviour
+// Here 'Target' means 'Player'
+public class GuardAttacker : BaseAttacker
 {
-    [SerializeField] private int _damage;
-    [SerializeField] private float _attackRange;
-    [SerializeField] private LayerMask _playerLayer;
-    private Coroutine _attackPlayerCoroutine;
+    private Coroutine _attackTargetCoroutine;
     private NpcHealth _npcHealth;
-    private GuardAnimator _guardAnimator;
-    private bool _playerHit = false;
 
-    private void Awake()
+    private new void Awake()
     {
         _npcHealth = GetComponent<NpcHealth>();
-        _guardAnimator = GetComponent<GuardAnimator>();
+        base.Awake();
     }
 
     public override void OnNetworkSpawn()
     {
         if (IsServer)
         {
-            StartAttackOnPlayer();
             _npcHealth.DeadUpdated += DeadUpdate;
+            StartAttackOnTarget();
         }
         base.OnNetworkSpawn();
     }
@@ -32,62 +27,37 @@ public class GuardAttacker : NetworkBehaviour
     private void DeadUpdate(object sender, DeadEventArgs args)
     {
         if (args.IsDead)
-            StopCoroutine(_attackPlayerCoroutine);
+            StopCoroutine(_attackTargetCoroutine);
     }
 
-    private void StartAttackOnPlayer()
+    private void StartAttackOnTarget()
     {
-        _attackPlayerCoroutine = StartCoroutine(AttackPlayerCoroutine());
+        _attackTargetCoroutine = StartCoroutine(AttackTargetCoroutine());
     }
 
-    IEnumerator AttackPlayerCoroutine()
+    IEnumerator AttackTargetCoroutine()
     {
         while (true)
         {
-            AttackNearbyHostilePlayers();
-            PlayAnimationIfPlayerWasHit();
+            HitNearbyTargets();
+            PlayAnimationIfTargetWasHit();
             yield return new WaitForSeconds(1f);
         }
     }
 
-    private void AttackNearbyHostilePlayers()
+    protected override bool IsRightTarget(Collider target)
     {
-        Collider[] nearbyPlayers = GetNearbyPlayers();
-
-        _playerHit = false;
-        foreach (Collider player in nearbyPlayers)
-        {
-            if (IsPlayerHostile(player))
-                AttackPlayer(player);
-        }
+        return IsTargetHostile(target);
     }
 
-    private bool IsPlayerHostile(Collider player)
+    private bool IsTargetHostile(Collider target)
     {
-        return HostilePlayerManager.Instance.IsPlayerHostile(player.transform);
+        return HostilePlayerManager.Instance.IsPlayerHostile(target.transform);
     }
 
-    private void AttackPlayer(Collider player)
+    private void PlayAnimationIfTargetWasHit()
     {
-        player.GetComponent<PlayerHealth>().TakeDamage(_damage);
-        _playerHit = true;
-    }
-
-    private Collider[] GetNearbyPlayers()
-    {
-        return Physics.OverlapSphere(transform.position, _attackRange, _playerLayer);
-    }
-
-    private void PlayAnimationIfPlayerWasHit()
-    {
-        if (_playerHit)
-        {
-            _guardAnimator.PlayHitAnimation();
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
+        if (_targetHit)
+            _animator.PlayHitAnimation();
     }
 }
