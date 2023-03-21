@@ -60,7 +60,7 @@ public class PlayerState : NetworkBehaviour
         TogglePathFollowingState();
     }
 
-    public void TogglePathFollowingState()
+    private void TogglePathFollowingState()
     {
         if (CurrentState == State.OnPath)
             _playerNetState.Value = State.Outside;

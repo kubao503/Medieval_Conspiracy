@@ -49,7 +49,7 @@ public abstract class Follower : NetworkBehaviour
         return MainPath.path.GetDirectionAtDistance(this._distanceTravelled);
     }
 
-    private void FixedUpdate()
+    protected void FixedUpdate()
     {
         UpdateDistanceTravelled();
 

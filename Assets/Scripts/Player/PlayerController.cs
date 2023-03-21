@@ -1,9 +1,9 @@
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using System;
 
 using State = PlayerState.State;
+
 
 public class PlayerController : NetworkBehaviour
 {
@@ -36,7 +36,6 @@ public class PlayerController : NetworkBehaviour
     private const int _moneyCollection = 1;
     private const int _maxMoney = 5;
 
-
     private void Awake()
     {
         GetComponents();
@@ -66,12 +65,6 @@ public class PlayerController : NetworkBehaviour
     {
         switch (args.OldState, args.NewState)
         {
-            case (_, State.OnPath):
-                StartPathFollowing();
-                break;
-            case (State.OnPath, State.Outside):
-                StopPathFollowing();
-                break;
             case (_, State.Inside):
                 EnterBase();
                 break;
@@ -130,10 +123,6 @@ public class PlayerController : NetworkBehaviour
                 AttackServerRpc(index);
             }
 
-            // Path following
-            if (_input.GetKeyDown(KeyCode.Q))
-                _playerState.TogglePathFollowingStateServerRpc();
-
             UpdateNetPositionAndRotation();
         }
         else
@@ -150,18 +139,6 @@ public class PlayerController : NetworkBehaviour
             Position = transform.position,
             Rotation = transform.rotation
         };
-    }
-
-    private void StartPathFollowing()
-    {
-        if (IsOwner)
-            _follower.enabled = true;
-    }
-
-    private void StopPathFollowing()
-    {
-        // if (IsOwner) can be omitted
-        _follower.enabled = false;
     }
 
     private void LeaveMoney(BaseController baseController)
