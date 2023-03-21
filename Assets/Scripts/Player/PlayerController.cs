@@ -1,4 +1,3 @@
-using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,12 +9,7 @@ public class PlayerController : NetworkBehaviour
     public static GameObject LocalPlayer;
     private readonly NetworkVariable<NetworkTransform> _netTransform = new(writePerm: NetworkVariableWritePermission.Owner);
     [SerializeField] private Camera _camera;
-    [SerializeField] private LayerMask _enemyLayer;
     [SerializeField] private LayerMask _vaultLayer;
-    [SerializeField] private float _attackRange;
-    [SerializeField] private Transform _attackCenter;
-    [SerializeField] private int _damage;
-    [SerializeField] private int _animationCount;
     private AudioListener _audioListener;
     private PlayerHealth _playerHealth;
     private PlayerState _playerState;
@@ -24,8 +18,6 @@ public class PlayerController : NetworkBehaviour
     private BaseInteractions _baseInteractions;
     private Rigidbody _rb;
     private Renderer[] _renderers;
-    private Animator _animator;
-    private PlayerFollower _follower;
     private int _money = 0;
     private IInput _input = InputAdapter.Instance;
 
@@ -46,14 +38,12 @@ public class PlayerController : NetworkBehaviour
     {
         _rb = GetComponent<Rigidbody>();
         _renderers = GetComponentsInChildren<Renderer>(true);
-        _animator = GetComponent<Animator>();
         _audioListener = GetComponent<AudioListener>();
         _playerHealth = GetComponent<PlayerHealth>();
         _playerState = GetComponent<PlayerState>();
         _playerHostility = GetComponent<PlayerHostility>();
         _teamController = GetComponent<TeamController>();
         _baseInteractions = GetComponent<BaseInteractions>();
-        _follower = GetComponent<PlayerFollower>();
     }
 
     private void SubscribeToEvents()
@@ -113,16 +103,6 @@ public class PlayerController : NetworkBehaviour
             if (_input.GetKeyDown(KeyCode.E))
                 CollectMoney();
 
-            // Fight
-            if (_input.GetLeftMouseButtonDown() && _playerState.CurrentState == State.Outside)
-            {
-                // Random animation parameters
-                var index = (byte)UnityEngine.Random.Range(0, _animationCount);
-
-                PlayHitAnimation(index);
-                AttackServerRpc(index);
-            }
-
             UpdateNetPositionAndRotation();
         }
         else
@@ -160,55 +140,6 @@ public class PlayerController : NetworkBehaviour
         // Add money for player
         _money = Mathf.Clamp(_money + _moneyCollection, min: 0, max: _maxMoney);
         MainUIController.Instance.UpdateMoneyText(_money);
-    }
-
-
-    [ServerRpc]
-    private void AttackServerRpc(byte animationIndex)
-    {
-        // Find enemies nearby
-        Collider[] enemiesSphere = Physics.OverlapSphere(transform.position, _attackRange, _enemyLayer);
-        Collider[] enemiesBox = Physics.OverlapBox(_attackCenter.position, Vector3.one * _attackRange, transform.rotation, _enemyLayer);
-
-        foreach (Collider other in Enumerable.Intersect(enemiesSphere, enemiesBox))
-        {
-            // Check if this is the same player
-            if (gameObject == other.gameObject) continue;
-
-            // Check if object is dead
-            if (other.GetComponent<HealthController>().IsDead) continue;
-
-            // Check if that's a player from the same team
-            if (other.gameObject.TryGetComponent<TeamController>(out var otherTeamController)
-                && otherTeamController.Team == _teamController.Team) continue;
-
-            // Hit
-            other.GetComponent<HealthController>().TakeDamage(_damage);
-
-            // Alarm guards
-            HostilePlayerManager.Instance.AddToHostilePlayers(transform);
-            _playerHostility.RestartHostileTimer();
-        }
-
-        // Play hit animation
-        PlayHitAnimationClientRpc(animationIndex);
-    }
-
-
-    [ClientRpc]
-    private void PlayHitAnimationClientRpc(byte animationIndex)
-    {
-        if (!IsOwner) // Owner has already played this animation
-        {
-            PlayHitAnimation(animationIndex);
-        }
-    }
-
-
-    private void PlayHitAnimation(byte index)
-    {
-        _animator.SetInteger("Index", index);
-        _animator.SetTrigger("Play");
     }
 
 
@@ -296,9 +227,6 @@ public class PlayerController : NetworkBehaviour
     {
         // Attack range
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
-        //var halfAttackRange = _attackRange / 2f;
-        Gizmos.DrawWireCube(_attackCenter.position, _attackRange * 2 * Vector3.one);
 
         // Entrance detection sphere
         Gizmos.color = Color.blue;
