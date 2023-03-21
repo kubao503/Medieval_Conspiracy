@@ -6,31 +6,21 @@ using UnityEngine;
 public class GuardController : NetworkBehaviour
 {
     public Transform Target;
-    [SerializeField] private LayerMask _playerLayer;
     [SerializeField] private LayerMask _deadGuardLayer;
     [SerializeField] private float _speed;
-    [SerializeField] private float _attackRange;
-    [SerializeField] private int _damage;
     [SerializeField] private float _respawnTime;
-    [SerializeField] private int _animationCount;
     private readonly NetworkVariable<NetworkTransform> _netTransform = new();
     private Rigidbody _rigidBody;
-    private Animator _animator;
     private NpcHealth _npcHealth;
-    private Coroutine _attackPlayerCo;
     private Vector3 _playerDirection;
-    private bool _playerHit = false;
     private readonly Vector3 _torque = new(.2f, .1f, .2f);
 
     private void Start()
     {
         _rigidBody = GetComponent<Rigidbody>();
-        _animator = GetComponent<Animator>();
         _npcHealth = GetComponent<NpcHealth>();
 
         SubscribeToDeadUpdate();
-        if (IsServer)
-            StartAttackOnPlayer();
     }
 
     private void SubscribeToDeadUpdate()
@@ -42,11 +32,6 @@ public class GuardController : NetworkBehaviour
     {
         if (args.IsDead)
             Die();
-    }
-
-    private void StartAttackOnPlayer()
-    {
-        _attackPlayerCo = StartCoroutine(AttackPlayerCoroutine());
     }
 
     void Update()
@@ -115,66 +100,6 @@ public class GuardController : NetworkBehaviour
         transform.LookAt(Target);
     }
 
-    IEnumerator AttackPlayerCoroutine()
-    {
-        while (true)
-        {
-            AttackNearbyHostilePlayers();
-            PlayAnimationIfPlayerWasHit();
-            yield return new WaitForSeconds(1f);
-        }
-    }
-
-    private void AttackNearbyHostilePlayers()
-    {
-        Collider[] nearbyPlayers = GetNearbyPlayers();
-
-        _playerHit = false;
-        foreach (Collider player in nearbyPlayers)
-        {
-            if (IsPlayerHostile(player))
-                AttackPlayer(player);
-        }
-    }
-
-    private Collider[] GetNearbyPlayers()
-    {
-        return Physics.OverlapSphere(transform.position, _attackRange, _playerLayer);
-    }
-
-    private bool IsPlayerHostile(Collider player)
-    {
-        return HostilePlayerManager.Instance.IsPlayerHostile(player.transform);
-    }
-
-    private void AttackPlayer(Collider player)
-    {
-        player.GetComponent<PlayerHealth>().TakeDamage(_damage);
-        _playerHit = true;
-    }
-
-    private void PlayAnimationIfPlayerWasHit()
-    {
-        if (_playerHit)
-        {
-            var animationIndex = GetRandomHitAnimationIndex();
-            PlayHitAnimationClientRpc(animationIndex);
-        }
-    }
-
-    private byte GetRandomHitAnimationIndex()
-    {
-        return (byte)Random.Range(0, _animationCount);
-    }
-
-    [ClientRpc]
-    private void PlayHitAnimationClientRpc(byte index)
-    {
-        _animator.SetInteger("Index", index);
-        _animator.SetTrigger("Play");
-    }
-
-
     private void Die()
     {
         FallDown();
@@ -182,7 +107,6 @@ public class GuardController : NetworkBehaviour
         if (IsServer)
         {
             GuardManager.Instance.RemoveFromActiveGuards(gameObject);
-            StopCoroutine(_attackPlayerCo);
             StartCoroutine(DyingCoroutine());
         }
     }
@@ -203,10 +127,5 @@ public class GuardController : NetworkBehaviour
     {
         yield return new WaitForSeconds(_respawnTime);
         Destroy(gameObject);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
     }
 }

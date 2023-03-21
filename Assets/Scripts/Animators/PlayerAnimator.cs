@@ -16,7 +16,7 @@ public class PlayerAnimator : NetworkBehaviour
 
     private byte GetRandomAnimationIndex()
     {
-        return (byte)UnityEngine.Random.Range(0, _animationsCount);
+        return (byte)Random.Range(0, _animationsCount);
     }
 
     private void PlayHitAnimation(byte index)
