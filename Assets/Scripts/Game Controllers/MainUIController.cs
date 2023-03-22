@@ -9,7 +9,6 @@ public class MainUIController : NetworkBehaviour
 {
     public static MainUIController Instance;
 
-    [SerializeField] private TextMeshProUGUI _joinCodeText;
     [SerializeField] private TextMeshProUGUI _deathMessage;
     //[SerializeField] private GameObject _respawnButton;
     [SerializeField] private TextMeshProUGUI _healthText;
@@ -24,7 +23,6 @@ public class MainUIController : NetworkBehaviour
     private void Awake()
     {
         Instance = this;
-        _joinCodeText.text = InterSceneStorage.Instance.JoinCode;
     }
 
     [ClientRpc]

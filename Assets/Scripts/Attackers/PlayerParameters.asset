@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _targetLayer:
     serializedVersion: 2
-    m_Bits: 0
-  _damage: 0
-  _attackRange: 0
+    m_Bits: 832
+  _damage: 30
+  _attackRange: 1.7

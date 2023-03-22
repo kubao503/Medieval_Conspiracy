@@ -90,7 +90,7 @@ public class NetworkController : NetworkBehaviour
         Allocation a = await RelayService.Instance.CreateAllocationAsync(_maxPlayers);
         var joinCode = await RelayService.Instance.GetJoinCodeAsync(a.AllocationId);
 
-        InterSceneStorage.Instance.JoinCode = joinCode;
+        LobbyUIController.Instance.SetJoinCode(joinCode);
 
         _transport.SetHostRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData);
 

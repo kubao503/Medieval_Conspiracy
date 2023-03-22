@@ -9,6 +9,8 @@ using NickType = StringContainer;
 /// </summary>
 public class LobbyUIController : MonoBehaviour
 {
+    public static LobbyUIController Instance;
+
     [SerializeField] private Image _loadingWheel;
     [SerializeField] private float _loadingWheelRotationSpeed;
     [SerializeField] private int _maxCodeLength;
@@ -38,9 +40,14 @@ public class LobbyUIController : MonoBehaviour
         TEAM_CHOOSING
     }
 
+    public void SetJoinCode(string joinCode)
+    {
+        _joinCode = joinCode;
+    }
 
     private void Awake()
     {
+        Instance = this;
         _lobbyNetwork = GetComponent<LobbyNetwork>();
     }
 
@@ -151,5 +158,7 @@ public class LobbyUIController : MonoBehaviour
         {
             NetworkController.Instance.LoadGameScene();
         }
+
+        GUILayout.Label("Join code: " + _joinCode);
     }
 }
