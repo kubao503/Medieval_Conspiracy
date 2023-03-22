@@ -159,6 +159,12 @@ public class LobbyUIController : MonoBehaviour
             NetworkController.Instance.LoadGameScene();
         }
 
-        GUILayout.Label("Join code: " + _joinCode);
+        DisplayJoinCode();
+    }
+
+    private void DisplayJoinCode()
+    {
+        if (_joinCode != string.Empty)
+            GUILayout.Label("Join code: " + _joinCode);
     }
 }
