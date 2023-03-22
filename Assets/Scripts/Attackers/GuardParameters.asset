@@ -9,10 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bb57acca98e9552990987352ad8115a, type: 3}
-  m_Name: Parameters
+  m_Script: {fileID: 11500000, guid: 37896cd6fc58c8542aa7a4be35f52c07, type: 3}
+  m_Name: GuardParameters
   m_EditorClassIdentifier: 
-  _minSpeed: 0.02
-  _maxSpeed: 0.04
-  _offsetRange: 2
-  _runSpeed: 0.04
+  _targetLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  _damage: 0
+  _attackRange: 0

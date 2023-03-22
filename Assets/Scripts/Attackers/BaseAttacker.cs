@@ -6,9 +6,7 @@ using Unity.Netcode;
 
 public abstract class BaseAttacker : NetworkBehaviour
 {
-    [SerializeField] protected LayerMask _targetLayer;
-    [SerializeField] private int _damage;
-    [SerializeField] private float _attackRange;
+    [SerializeField] private AttackerParameters _parameters;
     protected BaseAnimator _animator;
     protected bool _targetHit = false;
 
@@ -27,22 +25,22 @@ public abstract class BaseAttacker : NetworkBehaviour
     private IEnumerable GetNearbyTargets()
     {
         var boxCenter = GetBoxCenter();
-        Collider[] targetsInBox = Physics.OverlapBox(boxCenter, Vector3.one * _attackRange, transform.rotation, _targetLayer);
-        Collider[] targetsInSphere = Physics.OverlapSphere(transform.position, _attackRange, _targetLayer);
+        Collider[] targetsInBox = Physics.OverlapBox(boxCenter, Vector3.one * _parameters.AttackRange, transform.rotation, _parameters.TargetLayer);
+        Collider[] targetsInSphere = Physics.OverlapSphere(transform.position, _parameters.AttackRange, _parameters.TargetLayer);
 
         return Enumerable.Intersect(targetsInSphere, targetsInBox);
     }
 
     private Vector3 GetBoxCenter()
     {
-        return transform.position + transform.forward * _attackRange;
+        return transform.position + transform.forward * _parameters.AttackRange;
     }
 
     protected abstract bool IsRightTarget(Collider target);
 
     private void HitTarget(Collider target)
     {
-        target.GetComponent<HealthController>().TakeDamage(_damage);
+        target.GetComponent<HealthController>().TakeDamage(_parameters.Damage);
         _targetHit = true;
     }
 
@@ -53,7 +51,7 @@ public abstract class BaseAttacker : NetworkBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.DrawWireCube(GetBoxCenter(), _attackRange * 2 * Vector3.one);
-        Gizmos.DrawWireSphere(transform.position, _attackRange);
+        Gizmos.DrawWireCube(GetBoxCenter(), _parameters.AttackRange * 2 * Vector3.one);
+        Gizmos.DrawWireSphere(transform.position, _parameters.AttackRange);
     }
 }
