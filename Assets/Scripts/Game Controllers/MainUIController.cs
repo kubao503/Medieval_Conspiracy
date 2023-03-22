@@ -9,8 +9,10 @@ public class MainUIController : NetworkBehaviour
 {
     public static MainUIController Instance;
 
+    public event EventHandler RespawnClicked;
+
     [SerializeField] private TextMeshProUGUI _deathMessage;
-    //[SerializeField] private GameObject _respawnButton;
+    [SerializeField] private GameObject _respawnButton;
     [SerializeField] private TextMeshProUGUI _healthText;
     [SerializeField] private TextMeshProUGUI _victoryText;
     [SerializeField] private TextMeshProUGUI _gameOverText;
@@ -19,11 +21,6 @@ public class MainUIController : NetworkBehaviour
     [SerializeField] private AnimationCurve _damageVignetteFadingCurve;
     [SerializeField] private float _damageVignetteDuration = 1f;
     private const float _damageVignetteTimeDelta = .025f;
-
-    private void Awake()
-    {
-        Instance = this;
-    }
 
     [ClientRpc]
     public void SubscribeToLocalPlayerEventsClientRpc()
@@ -35,20 +32,24 @@ public class MainUIController : NetworkBehaviour
 
     private void StateUpdated(object sender, StateEventArgs args)
     {
-        var deathInfoActive = IsPlayerDead(args.NewState);
-        SetDeathInfoActive(deathInfoActive);
+        UpdateDeathMessage(args.NewState);
+        UpdateRespawnButton(args.NewState);
     }
 
-    private bool IsPlayerDead(PlayerState.State state)
+    private void UpdateDeathMessage(PlayerState.State state)
     {
-        return state == PlayerState.State.Dead
-            || state == PlayerState.State.Ragdoll;
+        _deathMessage.enabled = GetDeathMessageState(state);
     }
 
-    public void SetDeathInfoActive(bool active)
+    private bool GetDeathMessageState(PlayerState.State state)
     {
-        _deathMessage.enabled = active;
-        //_respawnButton.SetActive(active);
+        return state == PlayerState.State.Ragdoll
+            || state == PlayerState.State.Dead;
+    }
+
+    private void UpdateRespawnButton(PlayerState.State state)
+    {
+        _respawnButton.SetActive(state == PlayerState.State.Dead);
     }
 
     private void HealthUpdated(object sender, HealthEventArgs args)
@@ -89,19 +90,25 @@ public class MainUIController : NetworkBehaviour
         }
     }
 
-
     public void ShowGameEndText(bool victory)
     {
         _victoryText.enabled = victory;
         _gameOverText.enabled = !victory;
     }
 
+    public void UpdateMoneyText(int money)
+    {
+        _moneyText.text = "Money: " + money.ToString().PadLeft(3);
+    }
 
-    //public void SubscribeToRespawnClick(UnityAction action)
-    //{
-    //    _respawnButton.GetComponent<Button>().onClick.AddListener(action);
-    //}
+    private void Awake()
+    {
+        Instance = this;
+        _respawnButton.GetComponent<Button>().onClick.AddListener(RespawnClick);
+    }
 
-
-    public void UpdateMoneyText(int money) => _moneyText.text = "Money: " + money.ToString().PadLeft(3);
+    private void RespawnClick()
+    {
+        RespawnClicked?.Invoke(this, EventArgs.Empty);
+    }
 }

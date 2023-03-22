@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -64,6 +65,9 @@ public class PlayerController : NetworkBehaviour
             case (_, State.Dead):
                 Die();
                 break;
+            case (State.Dead, State.Outside):
+                Appear();
+                break;
         }
     }
 
@@ -83,12 +87,21 @@ public class PlayerController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (IsOwner)
+        {
             LocalPlayer = this.gameObject;
+            MainUIController.Instance.RespawnClicked += RespawnCallback;
+        }
         else
         {
             _audioListener.enabled = false;
             _camera.enabled = false;
         }
+    }
+
+    private void RespawnCallback(object sender, EventArgs args)
+    {
+        _playerState.RespawnServerRpc();
+        _playerHealth.RegainHealthServerRpc();
     }
 
     private void Update()
@@ -140,14 +153,6 @@ public class PlayerController : NetworkBehaviour
         // Add money for player
         _money = Mathf.Clamp(_money + _moneyCollection, min: 0, max: _maxMoney);
         MainUIController.Instance.UpdateMoneyText(_money);
-    }
-
-
-    public void Respawn()
-    {
-        //_playerState.CurrentState = State.OUTSIDE;
-
-        _playerHealth.RegainHealthServerRpc();
     }
 
     public void Quit()
