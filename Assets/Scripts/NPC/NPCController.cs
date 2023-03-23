@@ -8,16 +8,27 @@ public class NPCController : NetworkBehaviour
     [SerializeField] private LayerMask _NPCLayer;
     [SerializeField] private LayerMask _deadNPCLayer;
     [SerializeField] private float _respawnTime;
-    private readonly Vector3 torque = new(.2f, .1f, .2f);
     private Rigidbody _rigidBody;
     private NpcFollower _follower;
     private NpcHealth _npcHealth;
+    private RagdollController _ragdollController;
     private AudioSource _audioSource;
 
     public void Panic(Vector3 dangerPosition)
     {
         _follower.RunAwayFromDanger(dangerPosition);
         Scream();
+    }
+
+    private void Scream()
+    {
+        if (IsAudioIdle())
+            _audioSource.Play();
+    }
+
+    private bool IsAudioIdle()
+    {
+        return !_audioSource.isPlaying;
     }
 
     public void SetSpeedToDefault()
@@ -34,6 +45,7 @@ public class NPCController : NetworkBehaviour
     {
         _follower = GetComponent<NpcFollower>();
         _npcHealth = GetComponent<NpcHealth>();
+        _ragdollController = GetComponent<RagdollController>();
         _audioSource = GetComponent<AudioSource>();
     }
 
@@ -53,25 +65,17 @@ public class NPCController : NetworkBehaviour
     {
         if (args.IsDead)
             Die();
-        else
-            StandUp();
     }
 
     // Server-side
     private void Die()
     {
-        FallDown();
+        _ragdollController.FallDown();
+
+        _follower.enabled = false;
 
         if (IsServer)
             StartCoroutine(RespawnCoroutine());
-    }
-
-    private void FallDown()
-    {
-        _follower.enabled = false;
-        _rigidBody = gameObject.AddComponent<Rigidbody>();
-        _rigidBody.AddTorque(torque, ForceMode.VelocityChange);
-        gameObject.layer = GetLayerFromLayerMask(_deadNPCLayer);
     }
 
     // Server-side
@@ -83,32 +87,13 @@ public class NPCController : NetworkBehaviour
 
     private void Respawn()
     {
-        StandUp();
+        _ragdollController.SetBackToDefaultLayer();
+
+        Destroy(_rigidBody);
+        _follower.enabled = true;
+
         _npcHealth.RegainHealth();
         _follower.SetRandomPositionAlongPath();
         _follower.DistanceSync();
-    }
-
-    private void StandUp()
-    {
-        _follower.enabled = true;
-        Destroy(_rigidBody);
-        gameObject.layer = GetLayerFromLayerMask(_NPCLayer);
-    }
-
-    private int GetLayerFromLayerMask(LayerMask layerMask)
-    {
-        return (int)Mathf.Log(layerMask, 2);
-    }
-
-    private void Scream()
-    {
-        if (IsAudioIdle())
-            _audioSource.Play();
-    }
-
-    private bool IsAudioIdle()
-    {
-        return !_audioSource.isPlaying;
     }
 }

@@ -2,24 +2,28 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
-// Server-side
+
 public class GuardController : NetworkBehaviour
 {
     public Transform Target;
-    [SerializeField] private LayerMask _deadGuardLayer;
+
     [SerializeField] private float _speed;
     [SerializeField] private float _respawnTime;
     private readonly NetworkVariable<NetworkTransform> _netTransform = new();
     private Rigidbody _rigidBody;
     private NpcHealth _npcHealth;
-    private Vector3 _playerDirection;
-    private readonly Vector3 _torque = new(.2f, .1f, .2f);
+    private RagdollController _ragdollController;
+    private Vector3 _targetDirection;
 
-    private void Start()
+    private void Awake()
     {
         _rigidBody = GetComponent<Rigidbody>();
         _npcHealth = GetComponent<NpcHealth>();
+        _ragdollController = GetComponent<RagdollController>();
+    }
 
+    private void Start()
+    {
         SubscribeToDeadUpdate();
     }
 
@@ -69,58 +73,46 @@ public class GuardController : NetworkBehaviour
         {
             try
             {
-                SetDirectionToPlayer();
+                SetDirectionToTarget();
             }
             catch (MissingReferenceException)
             {
                 SetDirectionForward();
             }
             MoveInGivenDirection();
-            LookAtPlayer();
+            LookAtTarget();
         }
     }
 
-    private void SetDirectionToPlayer()
+    private void SetDirectionToTarget()
     {
-        _playerDirection = (Target.position - transform.position).normalized;
+        _targetDirection = (Target.position - transform.position).normalized;
     }
 
     private void SetDirectionForward()
     {
-        _playerDirection = transform.forward;
+        _targetDirection = transform.forward;
     }
 
     private void MoveInGivenDirection()
     {
-        _rigidBody.velocity = _playerDirection * _speed;
+        _rigidBody.velocity = _targetDirection * _speed;
     }
 
-    private void LookAtPlayer()
+    private void LookAtTarget()
     {
         transform.LookAt(Target);
     }
 
     private void Die()
     {
-        FallDown();
+        _ragdollController.FallDown();
 
         if (IsServer)
         {
             GuardManager.Instance.RemoveFromActiveGuards(gameObject);
             StartCoroutine(DyingCoroutine());
         }
-    }
-
-    private void FallDown()
-    {
-        _rigidBody.constraints = RigidbodyConstraints.None;
-        _rigidBody.AddTorque(_torque, ForceMode.VelocityChange);
-        gameObject.layer = GetLayerFromLayerMask(_deadGuardLayer);
-    }
-
-    private int GetLayerFromLayerMask(LayerMask layerMask)
-    {
-        return (int)Mathf.Log(layerMask, 2);
     }
 
     private IEnumerator DyingCoroutine()
