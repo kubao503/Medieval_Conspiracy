@@ -94,6 +94,14 @@ public class MainUIController : NetworkBehaviour
     {
         _victoryText.enabled = victory;
         _gameOverText.enabled = !victory;
+        StartCoroutine(GameEndTextTimeoutCoroutine());
+    }
+
+    private IEnumerator GameEndTextTimeoutCoroutine()
+    {
+        yield return new WaitForSeconds(3f);
+        _victoryText.enabled = false;
+        _gameOverText.enabled = false;
     }
 
     public void UpdateMoneyText(int money)
