@@ -1,0 +1,20 @@
+{
+    "name": "BuildingEditor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:cc00c5350d8f33d4a8ca3dc8887ee14e",
+        "GUID:3d0fd0766d800dc4fb2ad292305851da",
+        "GUID:bd3ef4b4d71509341ad7606d6ff8b4b9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

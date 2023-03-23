@@ -1,0 +1,17 @@
+{
+    "name": "Building",
+    "rootNamespace": "",
+    "references": [
+        "GUID:3d0fd0766d800dc4fb2ad292305851da",
+        "GUID:626070ea3273cb844a310aa4f53b31fa"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
