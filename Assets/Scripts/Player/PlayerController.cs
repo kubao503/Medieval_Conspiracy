@@ -19,6 +19,7 @@ public class PlayerController : NetworkBehaviour
     private BaseInteractions _baseInteractions;
     private Rigidbody _rb;
     private Renderer[] _renderers;
+    private RagdollController _ragdollController;
     private int _money = 0;
     private IInput _input = InputAdapter.Instance;
 
@@ -45,6 +46,7 @@ public class PlayerController : NetworkBehaviour
         _playerHostility = GetComponent<PlayerHostility>();
         _teamController = GetComponent<TeamController>();
         _baseInteractions = GetComponent<BaseInteractions>();
+        _ragdollController = GetComponent<RagdollController>();
     }
 
     private void SubscribeToEvents()
@@ -62,6 +64,9 @@ public class PlayerController : NetworkBehaviour
             case (State.Inside, State.Outside):
                 LeaveBase();
                 break;
+            case (_, State.Ragdoll):
+                BecomeRagdoll();
+                break;
             case (_, State.Dead):
                 Die();
                 break;
@@ -71,17 +76,21 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    private void Die()
+    private void BecomeRagdoll()
     {
-        Disappear();
-
+        _ragdollController.FallDown();
         if (IsServer)
         {
             HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
             _playerHostility.StopHostileTimer();
-
-            TeamManager.Instance.DeadPlayerUpdate(_teamController.Team, OwnerClientId);
         }
+    }
+
+    private void Die()
+    {
+        Disappear();
+        if (IsServer)
+            TeamManager.Instance.DeadPlayerUpdate(_teamController.Team, OwnerClientId);
     }
 
     public override void OnNetworkSpawn()
@@ -100,6 +109,7 @@ public class PlayerController : NetworkBehaviour
 
     private void RespawnCallback(object sender, EventArgs args)
     {
+        _ragdollController.StandUp();
         _playerState.RespawnServerRpc();
         _playerHealth.RegainHealthServerRpc();
     }
@@ -116,22 +126,24 @@ public class PlayerController : NetworkBehaviour
             if (_input.GetKeyDown(KeyCode.E))
                 CollectMoney();
 
-            UpdateNetPositionAndRotation();
+            SetNetPositionAndRotation();
         }
-        else
-        {
-            // Synchronize position and rotation
-            transform.SetPositionAndRotation(_netTransform.Value.Position, _netTransform.Value.Rotation);
-        }
+        else if (!_playerHealth.IsDead)
+            SetTransformBasedOnNetTransform();
     }
 
-    private void UpdateNetPositionAndRotation()
+    private void SetNetPositionAndRotation()
     {
         _netTransform.Value = new NetworkTransform()
         {
             Position = transform.position,
             Rotation = transform.rotation
         };
+    }
+
+    private void SetTransformBasedOnNetTransform()
+    {
+        transform.SetPositionAndRotation(_netTransform.Value.Position, _netTransform.Value.Rotation);
     }
 
     private void LeaveMoney(BaseController baseController)
@@ -230,9 +242,6 @@ public class PlayerController : NetworkBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Attack range
-        Gizmos.color = Color.yellow;
-
         // Entrance detection sphere
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius);

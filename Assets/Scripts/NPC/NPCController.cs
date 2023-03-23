@@ -5,10 +5,7 @@ using UnityEngine;
 
 public class NPCController : NetworkBehaviour
 {
-    [SerializeField] private LayerMask _NPCLayer;
-    [SerializeField] private LayerMask _deadNPCLayer;
     [SerializeField] private float _respawnTime;
-    private Rigidbody _rigidBody;
     private NpcFollower _follower;
     private NpcHealth _npcHealth;
     private RagdollController _ragdollController;
@@ -87,9 +84,8 @@ public class NPCController : NetworkBehaviour
 
     private void Respawn()
     {
-        _ragdollController.SetBackToDefaultLayer();
+        _ragdollController.StandUp();
 
-        Destroy(_rigidBody);
         _follower.enabled = true;
 
         _npcHealth.RegainHealth();
