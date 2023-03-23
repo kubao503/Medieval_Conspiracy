@@ -9,7 +9,7 @@ public class PlayerState : NetworkBehaviour
 
     private readonly NetworkVariable<State> _netState = new(_defaultState);
     private const State _defaultState = State.Spawning;
-    private const float _ragdollDuration = 3f;
+    private const float _ragdollDuration = 5f;
 
     public enum State : byte
     {
