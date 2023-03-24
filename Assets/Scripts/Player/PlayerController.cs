@@ -9,7 +9,6 @@ public class PlayerController : NetworkBehaviour
 {
     public static GameObject LocalPlayer;
     [SerializeField] private Camera _camera;
-    [SerializeField] private LayerMask _vaultLayer;
     private AudioListener _audioListener;
     private PlayerHealth _playerHealth;
     private PlayerState _playerState;
@@ -19,15 +18,10 @@ public class PlayerController : NetworkBehaviour
     private Rigidbody _rb;
     private Renderer[] _renderers;
     private RagdollController _ragdollController;
-    private int _money = 0;
     private IInput _input = InputAdapter.Instance;
 
     private const RigidbodyConstraints default_constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezePositionY;
-    private readonly Vector3 _moneyCollectionCenter = new(0f, -.5f, 0f);
     private const float _spawnHeight = 1f;
-    private const float _moneyCollectionRadius = .5f;
-    private const int _moneyCollection = 1;
-    private const int _maxMoney = 5;
 
     private void Awake()
     {
@@ -115,37 +109,8 @@ public class PlayerController : NetworkBehaviour
 
     private void Update()
     {
-        if (IsOwner)
-        {
-            // Quit game
-            if (_input.GetKeyDown(KeyCode.Escape))
-                Quit();
-
-            // Entering entrance
-            if (_input.GetKeyDown(KeyCode.E))
-                CollectMoney();
-        }
-    }
-
-    private void LeaveMoney(BaseController baseController)
-    {
-        // Money
-        baseController.LeaveMoney(_money);
-        _money = 0;
-        MainUIController.Instance.UpdateMoneyText(_money);
-    }
-
-
-    private void CollectMoney()
-    {
-        // Find nearby vaults
-        Collider[] vaults = Physics.OverlapSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius, _vaultLayer);
-
-        if (vaults.Length == 0) return; // No money to collect
-
-        // Add money for player
-        _money = Mathf.Clamp(_money + _moneyCollection, min: 0, max: _maxMoney);
-        MainUIController.Instance.UpdateMoneyText(_money);
+        if (IsOwner && _input.GetKeyDown(KeyCode.Escape))
+            Quit();
     }
 
     public void Quit()
@@ -219,12 +184,5 @@ public class PlayerController : NetworkBehaviour
     private void RemoveFromHostilePlayers()
     {
         HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        // Entrance detection sphere
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.TransformPoint(_moneyCollectionCenter), _moneyCollectionRadius);
     }
 }

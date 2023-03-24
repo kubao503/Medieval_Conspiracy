@@ -911,6 +911,7 @@ GameObject:
   - component: {fileID: 155601922295731831}
   - component: {fileID: 5446197473431923573}
   - component: {fileID: 6637152130958558743}
+  - component: {fileID: -7024162558565878332}
   - component: {fileID: -2433795388791542026}
   - component: {fileID: -5543645512002311220}
   - component: {fileID: 7990860738171086446}
@@ -1005,9 +1006,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _camera: {fileID: 3484823516636700388}
-  _vaultLayer:
-    serializedVersion: 2
-    m_Bits: 4096
 --- !u!114 &6302923811058667756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1184,6 +1182,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _deadLayer: {fileID: 11400000, guid: 6559eacfd65b66246bd2b938cbab1df3, type: 2}
+--- !u!114 &-7024162558565878332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4619581277976404965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 888e4b16679ee2efb9dbd54bf51f3b8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _vaultLayer:
+    serializedVersion: 2
+    m_Bits: 2048
 --- !u!114 &-2433795388791542026
 MonoBehaviour:
   m_ObjectHideFlags: 0
