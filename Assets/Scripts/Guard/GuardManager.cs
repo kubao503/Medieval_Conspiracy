@@ -1,33 +1,100 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 
-// Server-side
+
 public class GuardManager : NetworkBehaviour
 {
     public static GuardManager Instance;
 
     // All alive guards taking part in raid
     private readonly HashSet<GameObject> _activeGuards = new();
-
-    [SerializeField] private GameObject _guardPrefab;
     [SerializeField] private float _cooldownDuration;
-    [SerializeField] private float _spawnRadius;
     [SerializeField] private int _guardCount;
-    private Coroutine _updateTargetsCo;
+    [SerializeField] private float _updateTargetsPeriod = 1f;
+    private GuardSpawner _guardSpawner;
+    private Coroutine _updateTargetsCoroutine;
+    private WaitForSeconds _updateTargetsWaiting;
     private bool _raidActive = false;
     private bool _raidCooldown = false;
 
-
-    private void Awake()
-    {
-        Instance = this;
-    }
-
-
     public bool IsRaidActive() => _raidActive;
 
+    public void TryStartRaid(Vector3 playerPosition)
+    {
+        if (!IsRaidOrCooldownActive())
+            StartGuardRaid(playerPosition);
+    }
+
+    private bool IsRaidOrCooldownActive()
+    {
+        return _raidActive || _raidCooldown;
+    }
+
+    private void StartGuardRaid(Vector3 playerPosition)
+    {
+        _raidActive = true;
+
+        var playerDistanceOnPath = Follower.MainPath.path.GetClosestDistanceAlongPath(playerPosition);
+        SpawnAllGuards(playerDistanceOnPath);
+        StartUpdatingTargets();
+    }
+
+    private void SpawnAllGuards(float playerDistanceOnPath)
+    {
+        for (int i = 0; i < _guardCount; ++i)
+        {
+            var guard = _guardSpawner.Spawn(playerDistanceOnPath);
+            _activeGuards.Add(guard);
+        }
+    }
+
+    private void StartUpdatingTargets()
+    {
+        _updateTargetsCoroutine = StartCoroutine(UpdateTargetsCoroutine());
+    }
+
+    IEnumerator UpdateTargetsCoroutine()
+    {
+        while (_raidActive)
+        {
+            UpdateTargetsForAllGuards();
+            yield return _updateTargetsWaiting;
+        }
+    }
+
+    private void UpdateTargetsForAllGuards()
+    {
+        foreach (var guard in _activeGuards)
+            UpdateTarget(guard);
+    }
+
+    private void UpdateTarget(GameObject guard)
+    {
+        var guardController = guard.GetComponent<GuardController>();
+        guardController.UpdateTarget();
+    }
+
+    public void TryEndRaid()
+    {
+        if (_raidActive)
+            EndGuardRaid();
+    }
+
+    private void EndGuardRaid()
+    {
+        _raidActive = false;
+        DestroyAllGuards();
+        StopCoroutine(_updateTargetsCoroutine);
+    }
+
+    private void DestroyAllGuards()
+    {
+        foreach (var guard in _activeGuards)
+            Destroy(guard);
+        _activeGuards.Clear();
+    }
 
     public void RemoveFromActiveGuards(GameObject guard)
     {
@@ -35,117 +102,40 @@ public class GuardManager : NetworkBehaviour
         CheckForAllGuardsDead();
     }
 
-
     private void CheckForAllGuardsDead()
     {
-        if (_activeGuards.Count == 0 && _raidActive)
+        if (AreAllGuardsDead() && _raidActive)
         {
             EndGuardRaid();
-            StartCoroutine(RaidCooldownTimerCo());
+            StartCoroutine(RaidCooldownTimerCoroutine());
 
-            // Remove non-hostile players
             HostilePlayerManager.Instance.RemoveNonHostilePlayers();
         }
     }
 
-
-    public void TryStartRaid(Vector3 playerPosition)
+    private bool AreAllGuardsDead()
     {
-        if (!_raidActive && !_raidCooldown)
-        {
-            StartGuardRaid(playerPosition);
-        }
+        return _activeGuards.Count == 0;
     }
 
-
-    private void StartGuardRaid(Vector3 playerPosition)
-    {
-        _raidActive = true;
-
-        var playerDistanceOnPath = Follower.MainPath.path.GetClosestDistanceAlongPath(playerPosition);
-        for (int i = 0; i < _guardCount; ++i)
-            SpawnGuard(playerDistanceOnPath);
-        _updateTargetsCo = StartCoroutine(UpdateTargetsCo());
-    }
-
-
-    public void TryEndRaid()
-    {
-        if (_raidActive) EndGuardRaid();
-    }
-
-
-    private void EndGuardRaid()
-    {
-        _raidActive = false;
-        foreach (var guard in _activeGuards) Destroy(guard);
-        _activeGuards.Clear();
-        StopCoroutine(_updateTargetsCo);
-    }
-
-
-    // Updates targets for all active guards
-    IEnumerator UpdateTargetsCo()
-    {
-        while (_raidActive)
-        {
-            UpdateTargets();
-            yield return new WaitForSeconds(0.1f);
-        }
-    }
-
-
-    private void UpdateTargets()
-    {
-        foreach (var guard in _activeGuards) UpdateTarget(guard);
-    }
-
-
-    private void UpdateTarget(GameObject guard)
-    {
-        guard.GetComponent<GuardController>().Target = HostilePlayerManager.Instance.ClosestTarget(guard.transform.position).transform;
-    }
-
-
-    private IEnumerator RaidCooldownTimerCo()
+    private IEnumerator RaidCooldownTimerCoroutine()
     {
         _raidCooldown = true;
         yield return new WaitForSeconds(_cooldownDuration);
-        _raidCooldown = false;
 
-        // Check for hostile players
-        if (HostilePlayerManager.Instance.CheckForHostilePlayers(out var playerPosition))
-        {
-            // Span guards near random hostile player
-            StartGuardRaid(playerPosition);
-        }
+        _raidCooldown = false;
+        StartGuardRaidIfThereAreHostilePlayers();
     }
 
-
-    private void SpawnGuard(float playerDistanceOnPath)
+    private void StartGuardRaidIfThereAreHostilePlayers()
     {
-        //var circle2D = Random.insideUnitCircle.normalized;
-        //var circle3D = new Vector3(circle2D.x, 0f, circle2D.y);
+        if (HostilePlayerManager.Instance.CheckForHostilePlayers(out var playerPosition))
+            StartGuardRaid(playerPosition);
+    }
 
-        // Set position
-        // Distance on path relative to player
-        var guardRelativeDistance = (Random.value < .5) ? _spawnRadius : -_spawnRadius;
-
-        // Distance on path
-        var distance = playerDistanceOnPath + guardRelativeDistance;
-
-        // Distance on path in world space
-        var position = Follower.MainPath.path.GetPointAtDistance(distance);
-        position.y = _guardPrefab.transform.position.y;
-
-        //newGuard.transform.position = circle3D * _spawnRadius + playerPosition;
-        var newGuard = Instantiate(_guardPrefab, position, Quaternion.identity);
-
-        // Set target
-        UpdateTarget(newGuard);
-
-        newGuard.GetComponent<NetworkObject>().Spawn();
-
-        _activeGuards.Add(newGuard);
+    private void Awake()
+    {
+        Instance = this;
+        _guardSpawner = GetComponent<GuardSpawner>();
     }
 }

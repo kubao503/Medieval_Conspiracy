@@ -5,15 +5,19 @@ using UnityEngine;
 
 public class GuardController : NetworkBehaviour
 {
-    public Transform Target;
-
     [SerializeField] private float _speed;
     [SerializeField] private float _respawnTime;
     private readonly NetworkVariable<NetworkTransform> _netTransform = new();
     private Rigidbody _rigidBody;
     private NpcHealth _npcHealth;
     private RagdollController _ragdollController;
+    private Transform _target;
     private Vector3 _targetDirection;
+
+    public void UpdateTarget()
+    {
+        _target = HostilePlayerManager.Instance.ClosestTarget(transform.position);
+    }
 
     private void Awake()
     {
@@ -38,12 +42,29 @@ public class GuardController : NetworkBehaviour
             Die();
     }
 
+    private void Die()
+    {
+        _ragdollController.FallDown();
+
+        if (IsServer)
+        {
+            GuardManager.Instance.RemoveFromActiveGuards(gameObject);
+            StartCoroutine(DyingCoroutine());
+        }
+    }
+
+    private IEnumerator DyingCoroutine()
+    {
+        yield return new WaitForSeconds(_respawnTime);
+        Destroy(gameObject);
+    }
+
     void Update()
     {
         if (IsServer)
             SetNetTransform();
         else if (IsAlive())
-            SetTransformBasedOnNetTransform();
+            SetLocalTransformBasedOnNetTransform();
     }
 
     private void SetNetTransform()
@@ -60,7 +81,7 @@ public class GuardController : NetworkBehaviour
         return !_npcHealth.IsDead;
     }
 
-    private void SetTransformBasedOnNetTransform()
+    private void SetLocalTransformBasedOnNetTransform()
     {
         transform.SetPositionAndRotation(
             _netTransform.Value.Position,
@@ -71,27 +92,28 @@ public class GuardController : NetworkBehaviour
     {
         if (IsServer && IsAlive())
         {
-            try
-            {
-                SetDirectionToTarget();
-            }
-            catch (MissingReferenceException)
-            {
-                SetDirectionForward();
-            }
+            TrySetDirectionToTarget();
             MoveInGivenDirection();
-            LookAtTarget();
+            LookAtGivenDirection();
+        }
+    }
+
+    private void TrySetDirectionToTarget()
+    {
+        try
+        {
+            SetDirectionToTarget();
+        }
+        catch (MissingReferenceException)
+        {
+            UpdateTarget();
+            SetDirectionToTarget();
         }
     }
 
     private void SetDirectionToTarget()
     {
-        _targetDirection = (Target.position - transform.position).normalized;
-    }
-
-    private void SetDirectionForward()
-    {
-        _targetDirection = transform.forward;
+        _targetDirection = (_target.position - transform.position).normalized;
     }
 
     private void MoveInGivenDirection()
@@ -99,25 +121,8 @@ public class GuardController : NetworkBehaviour
         _rigidBody.velocity = _targetDirection * _speed;
     }
 
-    private void LookAtTarget()
+    private void LookAtGivenDirection()
     {
-        transform.LookAt(Target);
-    }
-
-    private void Die()
-    {
-        _ragdollController.FallDown();
-
-        if (IsServer)
-        {
-            GuardManager.Instance.RemoveFromActiveGuards(gameObject);
-            StartCoroutine(DyingCoroutine());
-        }
-    }
-
-    private IEnumerator DyingCoroutine()
-    {
-        yield return new WaitForSeconds(_respawnTime);
-        Destroy(gameObject);
+        transform.LookAt(_target);
     }
 }

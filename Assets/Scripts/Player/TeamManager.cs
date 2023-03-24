@@ -69,7 +69,7 @@ public class TeamManager : NetworkBehaviour
         foreach (var clientId in connectedClientsIds)
         {
             Team team = _playersData[clientId].Team;
-            PlayerSpawner.Instance.SpawnPlayer(clientId, team);
+            PlayerSpawner.Instance.Spawn(clientId, team);
         }
     }
 

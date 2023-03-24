@@ -129,7 +129,7 @@ public class PlayerController : NetworkBehaviour
             SetNetPositionAndRotation();
         }
         else if (!_playerHealth.IsDead)
-            SetTransformBasedOnNetTransform();
+            SetLocalTransformBasedOnNetTransform();
     }
 
     private void SetNetPositionAndRotation()
@@ -141,7 +141,7 @@ public class PlayerController : NetworkBehaviour
         };
     }
 
-    private void SetTransformBasedOnNetTransform()
+    private void SetLocalTransformBasedOnNetTransform()
     {
         transform.SetPositionAndRotation(_netTransform.Value.Position, _netTransform.Value.Rotation);
     }

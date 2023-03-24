@@ -15,5 +15,5 @@ MonoBehaviour:
   _targetLayer:
     serializedVersion: 2
     m_Bits: 256
-  _damage: 5
+  _damage: 50
   _attackRange: 1.5

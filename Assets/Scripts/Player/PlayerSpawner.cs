@@ -13,7 +13,7 @@ public class PlayerSpawner : MonoBehaviour
         Instance = this;
     }
 
-    public void SpawnPlayer(ulong clientId, Team team)
+    public void Spawn(ulong clientId, Team team)
     {
         InstantiatePlayerInsideTeamBase(team);
         SpawnAsPlayerObjectOfClient(clientId);
