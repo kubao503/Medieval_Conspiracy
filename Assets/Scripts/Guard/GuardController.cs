@@ -7,7 +7,6 @@ public class GuardController : NetworkBehaviour
 {
     [SerializeField] private float _speed;
     [SerializeField] private float _respawnTime;
-    private readonly NetworkVariable<NetworkTransform> _netTransform = new();
     private Rigidbody _rigidBody;
     private NpcHealth _npcHealth;
     private RagdollController _ragdollController;
@@ -59,35 +58,6 @@ public class GuardController : NetworkBehaviour
         Destroy(gameObject);
     }
 
-    void Update()
-    {
-        if (IsServer)
-            SetNetTransform();
-        else if (IsAlive())
-            SetLocalTransformBasedOnNetTransform();
-    }
-
-    private void SetNetTransform()
-    {
-        _netTransform.Value = new NetworkTransform()
-        {
-            Position = transform.position,
-            Rotation = transform.rotation
-        };
-    }
-
-    private bool IsAlive()
-    {
-        return !_npcHealth.IsDead;
-    }
-
-    private void SetLocalTransformBasedOnNetTransform()
-    {
-        transform.SetPositionAndRotation(
-            _netTransform.Value.Position,
-            _netTransform.Value.Rotation);
-    }
-
     private void FixedUpdate()
     {
         if (IsServer && IsAlive())
@@ -96,6 +66,11 @@ public class GuardController : NetworkBehaviour
             MoveInGivenDirection();
             LookAtGivenDirection();
         }
+    }
+
+    private bool IsAlive()
+    {
+        return !_npcHealth.IsDead;
     }
 
     private void TrySetDirectionToTarget()

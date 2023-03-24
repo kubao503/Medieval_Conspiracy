@@ -8,7 +8,6 @@ using State = PlayerState.State;
 public class PlayerController : NetworkBehaviour
 {
     public static GameObject LocalPlayer;
-    private readonly NetworkVariable<NetworkTransform> _netTransform = new(writePerm: NetworkVariableWritePermission.Owner);
     [SerializeField] private Camera _camera;
     [SerializeField] private LayerMask _vaultLayer;
     private AudioListener _audioListener;
@@ -125,25 +124,7 @@ public class PlayerController : NetworkBehaviour
             // Entering entrance
             if (_input.GetKeyDown(KeyCode.E))
                 CollectMoney();
-
-            SetNetPositionAndRotation();
         }
-        else if (!_playerHealth.IsDead)
-            SetLocalTransformBasedOnNetTransform();
-    }
-
-    private void SetNetPositionAndRotation()
-    {
-        _netTransform.Value = new NetworkTransform()
-        {
-            Position = transform.position,
-            Rotation = transform.rotation
-        };
-    }
-
-    private void SetLocalTransformBasedOnNetTransform()
-    {
-        transform.SetPositionAndRotation(_netTransform.Value.Position, _netTransform.Value.Rotation);
     }
 
     private void LeaveMoney(BaseController baseController)

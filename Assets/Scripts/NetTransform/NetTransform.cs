@@ -1,9 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-struct NetworkTransform : INetworkSerializable
+
+internal struct NetTransform : INetworkSerializable
 {
     private float _xPosition, _zPosition;
     private short _rotation;
