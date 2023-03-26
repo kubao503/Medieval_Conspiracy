@@ -52,7 +52,7 @@ public class PlayerFollower : Follower
 
     private void SetInitDistance()
     {
-        this._distanceTravelled = MainPath.path.GetClosestDistanceAlongPath(transform.position);
+        this._distanceTravelled = _mainPath.GetClosestDistanceAlongPath(transform.position);
     }
 
     private void SetInitSpeed()
@@ -103,7 +103,7 @@ public class PlayerFollower : Follower
 
     private bool IsCloseEnoughToPath()
     {
-        var closestPointOnPath = MainPath.path.GetClosestPointOnPath(transform.position);
+        var closestPointOnPath = _mainPath.GetClosestPointOnPath(transform.position);
         var distance = GetDistance2D(closestPointOnPath, transform.position);
         return distance <= _parameters.OffsetRange;
     }

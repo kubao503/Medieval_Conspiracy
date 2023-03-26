@@ -5,29 +5,13 @@ using UnityEngine;
 
 public abstract class Follower : NetworkBehaviour
 {
-    private static PathCreator _mainPath;
+    protected static VertexPath _mainPath => MainPath.Path;
 
     [SerializeField] protected FollowerParameters _parameters;
     protected float _distanceTravelled = 0f;
 
     protected abstract float Speed { get; set; }
     protected abstract float Offset { get; set; }
-
-    // TODO: Make protected
-    public static PathCreator MainPath
-    {
-        get
-        {
-            SetMainPath();
-            return _mainPath;
-        }
-    }
-
-    private static void SetMainPath()
-    {
-        if (_mainPath == null)
-            _mainPath = GameObject.Find("NPC Path").GetComponent<PathCreator>();
-    }
 
     protected float GetRandomSpeed()
     {
@@ -46,7 +30,7 @@ public abstract class Follower : NetworkBehaviour
 
     private Vector3 GetPathDirection()
     {
-        return MainPath.path.GetDirectionAtDistance(this._distanceTravelled);
+        return _mainPath.GetDirectionAtDistance(this._distanceTravelled);
     }
 
     protected void FixedUpdate()
@@ -61,7 +45,7 @@ public abstract class Follower : NetworkBehaviour
 
     private void UpdateDistanceTravelled()
     {
-        this._distanceTravelled = Mathf.Repeat(this._distanceTravelled + this.Speed, MainPath.path.length);
+        this._distanceTravelled = Mathf.Repeat(this._distanceTravelled + this.Speed, _mainPath.length);
     }
 
     private Vector3 GetPosition()
@@ -74,7 +58,7 @@ public abstract class Follower : NetworkBehaviour
 
     protected Vector3 GetPointAtDistance()
     {
-        return MainPath.path.GetPointAtDistance(this._distanceTravelled);
+        return _mainPath.GetPointAtDistance(this._distanceTravelled);
     }
 
     private Vector3 GetOffsetVector()
@@ -87,7 +71,7 @@ public abstract class Follower : NetworkBehaviour
 
     protected Quaternion GetRotation()
     {
-        var rotation = MainPath.path.GetRotationAtDistance(this._distanceTravelled) * _parameters.RotationOffset;
+        var rotation = _mainPath.GetRotationAtDistance(this._distanceTravelled) * _parameters.RotationOffset;
         if (IsReversed())
             rotation = GetOppositeRotation(rotation);
         return rotation;

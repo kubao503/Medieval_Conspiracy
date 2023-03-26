@@ -34,7 +34,7 @@ public class NpcFollower : Follower
 
     private float GetPathLength()
     {
-        return MainPath.path.length;
+        return _mainPath.length;
     }
 
     private void SetRandomOffset()

@@ -36,7 +36,7 @@ public class GuardManager : NetworkBehaviour
     {
         _raidActive = true;
 
-        var playerDistanceOnPath = Follower.MainPath.path.GetClosestDistanceAlongPath(playerPosition);
+        var playerDistanceOnPath = MainPath.Path.GetClosestDistanceAlongPath(playerPosition);
         SpawnAllGuards(playerDistanceOnPath);
         StartUpdatingTargets();
     }

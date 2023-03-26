@@ -21,7 +21,7 @@ public class GuardSpawner : MonoBehaviour
     {
         var distance = GetRandomDistanceAlongPathAroundPlayer(playerDistanceAlongPath);
 
-        var position = Follower.MainPath.path.GetPointAtDistance(distance);
+        var position = MainPath.Path.GetPointAtDistance(distance);
         position.y = _guardPrefab.transform.position.y;
 
         return position;
