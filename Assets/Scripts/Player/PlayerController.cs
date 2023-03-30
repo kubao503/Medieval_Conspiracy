@@ -7,7 +7,6 @@ using State = PlayerState.State;
 
 public class PlayerController : NetworkBehaviour
 {
-    public static GameObject LocalPlayer;
     [SerializeField] private Camera _camera;
     private AudioListener _audioListener;
     private PlayerHealth _playerHealth;
@@ -90,7 +89,7 @@ public class PlayerController : NetworkBehaviour
     {
         if (IsOwner)
         {
-            LocalPlayer = this.gameObject;
+            MainUIController.Instance.SubscribeToLocalPlayerEvents(gameObject);
             MainUIController.Instance.RespawnClicked += RespawnCallback;
         }
         else

@@ -35,7 +35,6 @@ public class BaseManager : NetworkBehaviour
     {
         SetBases();
         TeamManager.Instance.SpawnPlayers();
-        MainUIController.Instance.SubscribeToLocalPlayerEventsClientRpc();
     }
 
     private void SetBases()

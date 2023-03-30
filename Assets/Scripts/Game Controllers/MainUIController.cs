@@ -20,14 +20,11 @@ public class MainUIController : NetworkBehaviour
     [SerializeField] private Image _damageVignette;
     [SerializeField] private AnimationCurve _damageVignetteFadingCurve;
     [SerializeField] private float _damageVignetteDuration = 1f;
-    private const float _damageVignetteTimeDelta = .025f;
 
-    [ClientRpc]
-    public void SubscribeToLocalPlayerEventsClientRpc()
+    public void SubscribeToLocalPlayerEvents(GameObject localPlayer)
     {
-        var player = PlayerController.LocalPlayer;
-        player.GetComponent<PlayerState>().StateUpdated += StateUpdated;
-        player.GetComponent<PlayerHealth>().HealthUpdated += HealthUpdated;
+        localPlayer.GetComponent<PlayerState>().StateUpdated += StateUpdated;
+        localPlayer.GetComponent<PlayerHealth>().HealthUpdated += HealthUpdated;
     }
 
     private void StateUpdated(object sender, StateEventArgs args)
@@ -38,10 +35,10 @@ public class MainUIController : NetworkBehaviour
 
     private void UpdateDeathMessage(PlayerState.State state)
     {
-        _deathMessage.enabled = GetDeathMessageState(state);
+        _deathMessage.enabled = ShouldBeDeathMessageActive(state);
     }
 
-    private bool GetDeathMessageState(PlayerState.State state)
+    private bool ShouldBeDeathMessageActive(PlayerState.State state)
     {
         return state == PlayerState.State.Ragdoll
             || state == PlayerState.State.Dead;
@@ -56,8 +53,8 @@ public class MainUIController : NetworkBehaviour
     {
         UpdateHealthText(args.NewHealth);
 
-        if (DamageWasTaken(args))
-            ShowDamageVignete();
+        if (WasDamageTaken(args))
+            ShowDamageVignette();
     }
 
     private void UpdateHealthText(int health)
@@ -65,29 +62,30 @@ public class MainUIController : NetworkBehaviour
         _healthText.text = "Health: " + health.ToString().PadLeft(3);
     }
 
-    private bool DamageWasTaken(HealthEventArgs args)
+    private bool WasDamageTaken(HealthEventArgs args)
     {
         return args.NewHealth < args.OldHealth;
     }
 
-    private void ShowDamageVignete()
+    private void ShowDamageVignette()
     {
-        StartCoroutine(DamageVigneteFadingCo());
+        StartCoroutine(DamageVignetteFadingCoroutine());
     }
 
-    private IEnumerator DamageVigneteFadingCo()
+    private IEnumerator DamageVignetteFadingCoroutine()
+    {
+        for (var time = 0f; time <= 1f; time += (Time.deltaTime / _damageVignetteDuration))
+        {
+            SetDamageVignetteColorBasedOnTime(time);
+            yield return null;
+        }
+    }
+
+    private void SetDamageVignetteColorBasedOnTime(float time)
     {
         var color = _damageVignette.color;
-        var timeStep = _damageVignetteTimeDelta / _damageVignetteDuration;
-
-        for (var time = 0f; time <= 1f; time += timeStep)
-        {
-            // Changing alpha component of image color
-            color.a = _damageVignetteFadingCurve.Evaluate(time);
-            _damageVignette.color = color;
-
-            yield return new WaitForSeconds(_damageVignetteTimeDelta);
-        }
+        color.a = _damageVignetteFadingCurve.Evaluate(time);
+        _damageVignette.color = color;
     }
 
     public void ShowGameEndText(bool victory)
