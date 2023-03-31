@@ -1,12 +1,10 @@
 using System.Linq;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 using NickType = StringContainer;
 
-/// <summary>
+
 /// Must be placed on the same object as LobbyNetwork
-/// </summary>
 public class LobbyUIController : MonoBehaviour
 {
     public static LobbyUIController Instance;
@@ -26,11 +24,16 @@ public class LobbyUIController : MonoBehaviour
     private string _joinCode = "";
 
 
-    public State CurrentState { get => _currentState; set => _currentState = value; }
+    public State CurrentState
+    {
+        set => _currentState = value;
+    }
 
 
-    public bool StartAvailable { set => _startAvailable = value; }
-
+    public bool StartAvailable
+    {
+        set => _startAvailable = value;
+    }
 
     public enum State : byte
     {
@@ -45,27 +48,29 @@ public class LobbyUIController : MonoBehaviour
         _joinCode = joinCode;
     }
 
+    public void NickTablesUpdate(NickType[] teamANicks, NickType[] teamBNicks)
+    {
+        _teamANicks = teamANicks;
+        _teamBNicks = teamBNicks;
+    }
+
     private void Awake()
     {
         Instance = this;
         _lobbyNetwork = GetComponent<LobbyNetwork>();
     }
 
-
     private void FixedUpdate()
     {
-        var loadingWheelEnabled = false;
-
-        // Displaying and rotating loading wheel
-        if (_currentState == State.CONNECTING)
-        {
-            loadingWheelEnabled = true;
-            _loadingWheel.rectTransform.Rotate(new Vector3(0f, 0f, _loadingWheelRotationSpeed));
-        }
-
-        _loadingWheel.enabled = loadingWheelEnabled;
+        DisplayLoadingWheel();
     }
 
+    private void DisplayLoadingWheel()
+    {
+        _loadingWheel.enabled = (_currentState == State.CONNECTING);
+        if (_currentState == State.CONNECTING)
+            _loadingWheel.rectTransform.Rotate(Vector3.forward, _loadingWheelRotationSpeed);
+    }
 
     void OnGUI()
     {
@@ -74,15 +79,15 @@ public class LobbyUIController : MonoBehaviour
         switch (_currentState)
         {
             case State.NOT_CONNECTED:
-                NotConnected();
+                NotConnectedUI();
                 break;
 
             case State.NICK_CHOOSING:
-                NickChoosing();
+                NickChoosingUI();
                 break;
 
             case State.TEAM_CHOOSING:
-                TeamChoosing();
+                TeamChoosingUI();
                 break;
         }
 
@@ -90,41 +95,49 @@ public class LobbyUIController : MonoBehaviour
     }
 
 
-    private void NotConnected()
+    private void NotConnectedUI()
     {
         _joinCode = GUILayout.TextField(_joinCode, _maxCodeLength);
-        if (GUILayout.Button("Global host")) { _currentState = State.CONNECTING; NetworkController.Instance.CreateGlobalGame(); }
-        if (GUILayout.Button("Global client")) { _currentState = State.CONNECTING; NetworkController.Instance.JoinGlobalGame(_joinCode); }
+
+        if (GUILayout.Button("Global host"))
+        {
+            _currentState = State.CONNECTING;
+            NetworkController.Instance.CreateGlobalGame();
+        }
+        if (GUILayout.Button("Global client"))
+        {
+            _currentState = State.CONNECTING;
+            NetworkController.Instance.JoinGlobalGame(_joinCode);
+        }
 
         GUILayout.Space(10);
 
-        if (GUILayout.Button("Local host")) { _currentState = State.CONNECTING; NetworkController.Instance.CreateLocalGame(); }
-        if (GUILayout.Button("Local client")) { _currentState = State.CONNECTING; NetworkController.Instance.JoinLocalGame(); }
+        if (GUILayout.Button("Local host"))
+        {
+            _currentState = State.CONNECTING;
+            NetworkController.Instance.CreateLocalGame();
+        }
+        if (GUILayout.Button("Local client"))
+        {
+            _currentState = State.CONNECTING;
+            NetworkController.Instance.JoinLocalGame();
+        }
     }
 
-
-    private void NickChoosing()
+    private void NickChoosingUI()
     {
         GUILayout.Label("Your nick:");
         _nick = GUILayout.TextField(_nick);
+
         if (GUILayout.Button("Submit") && _nick.Trim().Length != 0)
         {
             _lobbyNetwork.NickUpdateServerRpc(new(_nick));
             _lobbyNetwork.ReadyUpdateServerRpc(ready: false);
-            //_lobbyNetwork.ReadyUpdateServerRpc(_ready);
             _currentState = State.TEAM_CHOOSING;
         }
     }
 
-
-    public void NickTablesUpdate(NickType[] teamANicks, NickType[] teamBNicks)
-    {
-        _teamANicks = teamANicks;
-        _teamBNicks = teamBNicks;
-    }
-
-
-    private void TeamChoosing()
+    private void TeamChoosingUI()
     {
         // First column
         if (GUILayout.Button("Team A") && !_ready)
@@ -155,9 +168,7 @@ public class LobbyUIController : MonoBehaviour
 
         // Start button
         if (_startAvailable && GUILayout.Button("Start"))
-        {
             NetworkController.Instance.LoadGameScene();
-        }
 
         DisplayJoinCode();
     }

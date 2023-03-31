@@ -19,14 +19,46 @@ public class NetworkController : NetworkBehaviour
     private bool _gameStarted = false;
     private bool _connected = false;
 
+    public async void CreateGlobalGame()
+    {
+        Allocation a = await RelayService.Instance.CreateAllocationAsync(_maxPlayers);
+        var joinCode = await RelayService.Instance.GetJoinCodeAsync(a.AllocationId);
+        LobbyUIController.Instance.SetJoinCode(joinCode);
+        _transport.SetHostRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData);
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public async void JoinGlobalGame(string joinCode)
+    {
+        JoinAllocation a = await RelayService.Instance.JoinAllocationAsync(joinCode);
+        _transport.SetClientRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData, a.HostConnectionData);
+        NetworkManager.Singleton.StartClient();
+    }
+
+    public void CreateLocalGame()
+    {
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public void JoinLocalGame() => NetworkManager.Singleton.StartClient();
+
+    public void LoadGameScene()
+    {
+        NetworkManager.SceneManager.LoadScene("MainScene", LoadSceneMode.Single);
+        _gameStarted = true;
+    }
 
     private async void Awake()
     {
         Instance = this;
-
         await Authenticate();
     }
 
+    private static async Task Authenticate()
+    {
+        await UnityServices.InitializeAsync();
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+    }
 
     private void Start()
     {
@@ -75,51 +107,5 @@ public class NetworkController : NetworkBehaviour
         {
 
         }
-    }
-
-
-    private static async Task Authenticate()
-    {
-        await UnityServices.InitializeAsync();
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
-    }
-
-
-    public async void CreateGlobalGame()
-    {
-        Allocation a = await RelayService.Instance.CreateAllocationAsync(_maxPlayers);
-        var joinCode = await RelayService.Instance.GetJoinCodeAsync(a.AllocationId);
-
-        LobbyUIController.Instance.SetJoinCode(joinCode);
-
-        _transport.SetHostRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData);
-
-        NetworkManager.Singleton.StartHost();
-    }
-
-
-    public async void JoinGlobalGame(string joinCode)
-    {
-        JoinAllocation a = await RelayService.Instance.JoinAllocationAsync(joinCode);
-
-        _transport.SetClientRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData, a.HostConnectionData);
-
-        NetworkManager.Singleton.StartClient();
-    }
-
-
-    public void CreateLocalGame()
-    {
-        NetworkManager.Singleton.StartHost();
-    }
-
-
-    public void JoinLocalGame() => NetworkManager.Singleton.StartClient();
-
-
-    public void LoadGameScene()
-    {
-        NetworkManager.SceneManager.LoadScene("MainScene", LoadSceneMode.Single);
-        _gameStarted = true;
     }
 }
