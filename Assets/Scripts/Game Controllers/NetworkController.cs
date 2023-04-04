@@ -72,6 +72,7 @@ public class NetworkController : NetworkBehaviour
     private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
         response.Approved = !_gameStarted;
+        response.CreatePlayerObject = true;
     }
 
 
