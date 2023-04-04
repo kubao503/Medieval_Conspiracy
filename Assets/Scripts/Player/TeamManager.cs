@@ -12,10 +12,9 @@ public class TeamManager : NetworkBehaviour
 
     [SerializeField] private LobbyNetwork _lobbyNetwork;
 
-    private readonly (string, Team, bool, bool) _defaultPlayerData = ("", Team.A, false, false);
-    private readonly Dictionary<ulong, (string Nick, Team Team, bool Ready, bool Dead)> _playersData = new();
+    private readonly (string, Team, bool) _defaultPlayerData = ("", Team.A, false);
+    private readonly Dictionary<ulong, (string Nick, Team Team, bool Dead)> _playersData = new();
 
-    public bool AllPlayersReady => _playersData.All(x => x.Value.Ready);
 
     public void NickUpdate(string nick, ulong clientId)
     {
@@ -39,15 +38,6 @@ public class TeamManager : NetworkBehaviour
         if (!_playersData.TryGetValue(clientId, out var userData))
             userData = _defaultPlayerData;
         userData.Team = team;
-        _playersData[clientId] = userData;
-    }
-
-    public void ReadyUpdate(bool ready, ulong clientId)
-    {
-        //var userData = _playersData.GetValueOrDefault(clientId, _defaultPlayerData);
-        if (!_playersData.TryGetValue(clientId, out var userData))
-            userData = _defaultPlayerData;
-        userData.Ready = ready;
         _playersData[clientId] = userData;
     }
 

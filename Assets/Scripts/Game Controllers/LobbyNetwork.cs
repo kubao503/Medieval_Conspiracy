@@ -36,18 +36,6 @@ public class LobbyNetwork : NetworkBehaviour
         _teamManager.NickTablesUpdate();
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void ReadyUpdateServerRpc(bool ready, ServerRpcParams rpcParams = default)
-    {
-        var clientId = rpcParams.Receive.SenderClientId;
-        _teamManager.ReadyUpdate(ready, clientId);
-
-        // Update start button
-        var startEnabled = _teamManager.AllPlayersReady;
-        _lobbyUI.StartAvailable = startEnabled;
-        //_lobbyUI.StartAvailable = _teamManager.AllPlayersReady;
-    }
-
     private void Awake()
     {
         Instance = this;

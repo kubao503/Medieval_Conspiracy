@@ -81,7 +81,6 @@ public class NetworkController : NetworkBehaviour
         if (clientId == NetworkManager.LocalClientId)
         {
             _lobbyUI.CurrentState = LobbyUIController.State.NICK_CHOOSING;
-            LobbyNetwork.Instance.ReadyUpdateServerRpc(ready: false);
             _connected = true;
         }
     }

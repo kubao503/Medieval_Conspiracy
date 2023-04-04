@@ -1,11 +1,13 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
+
 using NickType = StringContainer;
 
 
 /// Must be placed on the same object as LobbyNetwork
-public class LobbyUIController : MonoBehaviour
+public class LobbyUIController : NetworkBehaviour
 {
     public static LobbyUIController Instance;
 
@@ -18,21 +20,12 @@ public class LobbyUIController : MonoBehaviour
     private State _currentState = State.NOT_CONNECTED;
     private NickType[] _teamANicks;
     private NickType[] _teamBNicks;
-    private bool _ready = false;
-    private bool _startAvailable = false;
     private string _nick = "";
     private string _joinCode = "";
-
 
     public State CurrentState
     {
         set => _currentState = value;
-    }
-
-
-    public bool StartAvailable
-    {
-        set => _startAvailable = value;
     }
 
     public enum State : byte
@@ -132,7 +125,6 @@ public class LobbyUIController : MonoBehaviour
         if (GUILayout.Button("Submit") && _nick.Trim().Length != 0)
         {
             _lobbyNetwork.NickUpdateServerRpc(new(_nick));
-            _lobbyNetwork.ReadyUpdateServerRpc(ready: false);
             _currentState = State.TEAM_CHOOSING;
         }
     }
@@ -140,7 +132,7 @@ public class LobbyUIController : MonoBehaviour
     private void TeamChoosingUI()
     {
         // First column
-        if (GUILayout.Button("Team A") && !_ready)
+        if (GUILayout.Button("Team A") && !LobbyPlayerData.LocalPlayer.Ready)
         {
             _lobbyNetwork.TeamUpdateServerRpc(Team.A);
         }
@@ -150,7 +142,7 @@ public class LobbyUIController : MonoBehaviour
 
         // Second column
         GUILayout.BeginArea(new Rect(200f, 0f, 200f, 200));
-        if (GUILayout.Button("Team B") && !_ready)
+        if (GUILayout.Button("Team B") && !LobbyPlayerData.LocalPlayer.Ready)
         {
             _lobbyNetwork.TeamUpdateServerRpc(Team.B);
         }
@@ -160,17 +152,20 @@ public class LobbyUIController : MonoBehaviour
 
         // Ready button
         GUILayout.BeginArea(new Rect(0f, 200f, 200f, 200f));
-        if (GUILayout.Button(_ready ? "Not Ready" : "Ready"))
-        {
-            _ready = !_ready;
-            _lobbyNetwork.ReadyUpdateServerRpc(_ready);
-        }
+
+        if (GUILayout.Button(LobbyPlayerData.LocalPlayer.Ready ? "Not Ready" : "Ready"))
+            LobbyPlayerData.LocalPlayer.ToggleReady();
 
         // Start button
-        if (_startAvailable && GUILayout.Button("Start"))
+        if (IsServerAndAllPlayersAreReady() && GUILayout.Button("Start"))
             NetworkController.Instance.LoadGameScene();
 
         DisplayJoinCode();
+    }
+
+    private bool IsServerAndAllPlayersAreReady()
+    {
+        return IsServer && LobbyPlayerDataManager.Instance.AreAllPlayersReady();
     }
 
     private void DisplayJoinCode()
