@@ -6,14 +6,6 @@ using UnityEngine;
 using NickType = StringContainer;
 
 
-public enum Team : byte
-{
-    A,
-    B,
-    Total
-}
-
-
 public class TeamManager : NetworkBehaviour
 {
     public static TeamManager Instance;
