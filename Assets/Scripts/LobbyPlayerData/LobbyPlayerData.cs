@@ -1,24 +1,51 @@
+using Unity.Collections;
 using Unity.Netcode;
-using UnityEngine; //debug
 
 
 public class LobbyPlayerData : NetworkBehaviour
 {
     public static LobbyPlayerData LocalPlayer;
 
-    private readonly NetworkVariable<bool> _ready = new(
+    private readonly NetworkVariable<bool> _netReady = new(
         value: false,
+        writePerm: NetworkVariableWritePermission.Owner
+    );
+
+    private readonly NetworkVariable<Team> _netTeam = new(
+        value: Team.A,
+        writePerm: NetworkVariableWritePermission.Owner
+    );
+
+    private readonly NetworkVariable<FixedString64Bytes> _netNick = new(
         writePerm: NetworkVariableWritePermission.Owner
     );
 
     public bool Ready
     {
-        get => _ready.Value;
+        get => _netReady.Value;
+    }
+
+    public Team Team
+    {
+        get => _netTeam.Value;
+        set => _netTeam.Value = value;
+    }
+
+    public string Nick
+    {
+        get => _netNick.Value.ToString();
+        set => _netNick.Value = value;
     }
 
     public void ToggleReady()
     {
-        _ready.Value = !_ready.Value;
+        _netReady.Value = !_netReady.Value;
+    }
+
+    public static bool IsNickCorrect(string nick)
+    {
+        var trimmedLength = nick.Trim().Length;
+        return trimmedLength != 0;
     }
 
     private void Awake()

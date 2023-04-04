@@ -1,52 +1,22 @@
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-
-using NickType = StringContainer;
 
 
 public class TeamManager : NetworkBehaviour
 {
     public static TeamManager Instance;
 
-    [SerializeField] private LobbyNetwork _lobbyNetwork;
-
-    private readonly (string, Team, bool) _defaultPlayerData = ("", Team.A, false);
-    private readonly Dictionary<ulong, (string Nick, Team Team, bool Dead)> _playersData = new();
-
-
-    public void NickUpdate(string nick, ulong clientId)
-    {
-        if (!_playersData.TryGetValue(clientId, out var userData))
-            userData = _defaultPlayerData;
-        userData.Nick = nick;
-        _playersData[clientId] = userData;
-    }
-
-    public void NickTablesUpdate()
-    {
-        // Might need to add Select(x => new(x)) as the first method call
-        NickType[] teamANicks = _playersData.Values.Where(x => x.Team == Team.A).Select(x => new NickType(x.Nick)).ToArray();
-        NickType[] teamBNicks = _playersData.Values.Where(x => x.Team == Team.B).Select(x => new NickType(x.Nick)).ToArray();
-
-        _lobbyNetwork.NickTablesUpdateClientRpc(teamANicks, teamBNicks);
-    }
-
-    public void TeamUpdate(Team team, ulong clientId)
-    {
-        if (!_playersData.TryGetValue(clientId, out var userData))
-            userData = _defaultPlayerData;
-        userData.Team = team;
-        _playersData[clientId] = userData;
-    }
+    // TODO: Delete following two lines
+    private readonly bool _defaultPlayerData = false;
+    private readonly Dictionary<ulong, bool> _clientDead = new(); // Dead
 
     public void SpawnPlayers()
     {
         var connectedClientsIds = NetworkManager.Singleton.ConnectedClientsIds;
         foreach (var clientId in connectedClientsIds)
         {
-            Team team = _playersData[clientId].Team;
+            Team team = LobbyPlayerDataManager.Instance.GetClientTeam(clientId);
             PlayerSpawner.Instance.Spawn(clientId, team);
         }
     }
@@ -61,20 +31,17 @@ public class TeamManager : NetworkBehaviour
 
     private void SetPlayerStateToDead(ulong clientId)
     {
-        var deadPlayerData = _playersData[clientId];
-        deadPlayerData.Dead = true;
-        _playersData[clientId] = deadPlayerData;
+        var deadPlayerData = _clientDead[clientId];
+        deadPlayerData = true;
+        _clientDead[clientId] = deadPlayerData;
     }
 
-    private bool IsGameOver(Team playerTeam)
+    private bool IsGameOver(Team team)
     {
-        foreach (var playerData in _playersData.Values)
+        var clientIds = LobbyPlayerDataManager.Instance.GetClientIdsFromTeam(team);
+        foreach (var clientId in clientIds)
         {
-            Debug.Log("Game continues: " + !playerData.Dead +
-                " && " + (playerData.Team == playerTeam));
-
-            // TODO: IsAlivePlayerFromTheSameTeam()
-            if (!playerData.Dead && playerData.Team == playerTeam)
+            if (!_clientDead[clientId])
                 return false;
         }
         return true;
@@ -83,7 +50,6 @@ public class TeamManager : NetworkBehaviour
     [ClientRpc]
     private void EndGameClientRpc(Team loosingTeam)
     {
-        Debug.Log("Received EndGameClientRpc()");
         TeamController.LocalPlayerInstance.EndGame(loosingTeam);
     }
 

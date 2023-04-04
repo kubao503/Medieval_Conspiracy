@@ -1,9 +1,6 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
-
-using NickType = StringContainer;
 
 
 /// Must be placed on the same object as LobbyNetwork
@@ -15,12 +12,8 @@ public class LobbyUIController : NetworkBehaviour
     [SerializeField] private float _loadingWheelRotationSpeed;
     [SerializeField] private int _maxCodeLength;
 
-    private LobbyNetwork _lobbyNetwork;
-
     private State _currentState = State.NOT_CONNECTED;
-    private NickType[] _teamANicks;
-    private NickType[] _teamBNicks;
-    private string _nick = "";
+    private string _tmpNick = "";
     private string _joinCode = "";
 
     public State CurrentState
@@ -41,16 +34,9 @@ public class LobbyUIController : NetworkBehaviour
         _joinCode = joinCode;
     }
 
-    public void NickTablesUpdate(NickType[] teamANicks, NickType[] teamBNicks)
-    {
-        _teamANicks = teamANicks;
-        _teamBNicks = teamBNicks;
-    }
-
     private void Awake()
     {
         Instance = this;
-        _lobbyNetwork = GetComponent<LobbyNetwork>();
     }
 
     private void FixedUpdate()
@@ -120,11 +106,11 @@ public class LobbyUIController : NetworkBehaviour
     private void NickChoosingUI()
     {
         GUILayout.Label("Your nick:");
-        _nick = GUILayout.TextField(_nick);
+        _tmpNick = GUILayout.TextField(_tmpNick);
 
-        if (GUILayout.Button("Submit") && _nick.Trim().Length != 0)
+        if (GUILayout.Button("Submit") && LobbyPlayerData.IsNickCorrect(_tmpNick))
         {
-            _lobbyNetwork.NickUpdateServerRpc(new(_nick));
+            LobbyPlayerData.LocalPlayer.Nick = _tmpNick;
             _currentState = State.TEAM_CHOOSING;
         }
     }
@@ -133,21 +119,22 @@ public class LobbyUIController : NetworkBehaviour
     {
         // First column
         if (GUILayout.Button("Team A") && !LobbyPlayerData.LocalPlayer.Ready)
-        {
-            _lobbyNetwork.TeamUpdateServerRpc(Team.A);
-        }
-        foreach (var nick in _teamANicks ?? Enumerable.Empty<NickType>())
-            if (nick.Text.Trim().Length != 0) GUILayout.Label(nick.Text);
+            LobbyPlayerData.LocalPlayer.Team = Team.A;
+
+        foreach (var nick in LobbyPlayerDataManager.Instance.GetNicksOfPlayersFromTeam(Team.A))
+            GUILayout.Label(nick);
+
         GUILayout.EndArea();
 
         // Second column
         GUILayout.BeginArea(new Rect(200f, 0f, 200f, 200));
+
         if (GUILayout.Button("Team B") && !LobbyPlayerData.LocalPlayer.Ready)
-        {
-            _lobbyNetwork.TeamUpdateServerRpc(Team.B);
-        }
-        foreach (var nick in _teamBNicks ?? Enumerable.Empty<NickType>())
-            if (nick.Text.Trim().Length != 0) GUILayout.Label(nick.Text);
+            LobbyPlayerData.LocalPlayer.Team = Team.B;
+
+        foreach (var nick in LobbyPlayerDataManager.Instance.GetNicksOfPlayersFromTeam(Team.B))
+            GUILayout.Label(nick);
+
         GUILayout.EndArea();
 
         // Ready button

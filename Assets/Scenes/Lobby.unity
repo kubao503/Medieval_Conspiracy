@@ -510,7 +510,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3313bcf37ea20504d9707fa812f81c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lobbyNetwork: {fileID: 2078822934}
 --- !u!114 &917658655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -958,7 +957,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2078822930}
   - component: {fileID: 2078822932}
-  - component: {fileID: 2078822934}
   - component: {fileID: 2078822933}
   m_Layer: 0
   m_Name: Lobby Controllers
@@ -1013,19 +1011,6 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &2078822934
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2078822928}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4858b2e95ce377408f8531500edc09a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _teamManager: {fileID: 917658654}
 --- !u!1 &2088177558
 GameObject:
   m_ObjectHideFlags: 0
