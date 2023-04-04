@@ -12,10 +12,10 @@ public class GuardManager : NetworkBehaviour
     private readonly HashSet<GameObject> _activeGuards = new();
     [SerializeField] private float _cooldownDuration;
     [SerializeField] private int _guardCount;
-    [SerializeField] private float _updateTargetsPeriod = 1f;
+    [SerializeField] private float _updateTargetsInterval = 1f;
     private GuardSpawner _guardSpawner;
     private Coroutine _updateTargetsCoroutine;
-    private WaitForSeconds _updateTargetsWaiting;
+    private WaitForSeconds _updateTargetsWait;
     private bool _raidActive = false;
     private bool _raidCooldown = false;
 
@@ -60,7 +60,7 @@ public class GuardManager : NetworkBehaviour
         while (_raidActive)
         {
             UpdateTargetsForAllGuards();
-            yield return _updateTargetsWaiting;
+            yield return _updateTargetsWait;
         }
     }
 
@@ -137,5 +137,6 @@ public class GuardManager : NetworkBehaviour
     {
         Instance = this;
         _guardSpawner = GetComponent<GuardSpawner>();
+        _updateTargetsWait = new WaitForSeconds(_updateTargetsInterval);
     }
 }
