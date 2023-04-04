@@ -6,7 +6,7 @@ using UnityEngine;
 public class LobbyPlayerDataManager : MonoBehaviour
 {
     public static LobbyPlayerDataManager Instance;
-    private readonly List<LobbyPlayerData> _playersData = new();
+    private readonly HashSet<LobbyPlayerData> _playersData = new();
 
     public void RegisterPlayer(LobbyPlayerData playerData)
     {
@@ -20,18 +20,18 @@ public class LobbyPlayerDataManager : MonoBehaviour
 
     public IEnumerable<string> GetNicksOfPlayersFromTeam(Team team)
     {
-        return _playersData.FindAll(p => p.Team == team).Select(p => p.Nick);
+        return _playersData.Where(p => p.Team == team).Select(p => p.Nick);
     }
 
     public Team GetClientTeam(ulong clientId)
     {
-        var foundClient = _playersData.Find(c => c.OwnerClientId == clientId);
+        var foundClient = _playersData.FirstOrDefault(c => c.OwnerClientId == clientId);
         return foundClient.Team;
     }
 
     public IEnumerable<ulong> GetClientIdsFromTeam(Team team)
     {
-        var foundClients = _playersData.FindAll(c => c.Team == team);
+        var foundClients = _playersData.Where(c => c.Team == team);
         return foundClients.Select(c => c.OwnerClientId);
     }
 
