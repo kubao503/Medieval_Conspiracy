@@ -13,7 +13,7 @@ public class NetworkController : NetworkBehaviour
 {
     public static NetworkController Instance;
 
-    [SerializeField] private LobbyUIController _lobbyUI;
+    [SerializeField] private LobbyUI _lobbyUI;
     [SerializeField] private int _maxPlayers;
     private UnityTransport _transport;
     private bool _gameStarted = false;
@@ -23,7 +23,7 @@ public class NetworkController : NetworkBehaviour
     {
         Allocation a = await RelayService.Instance.CreateAllocationAsync(_maxPlayers);
         var joinCode = await RelayService.Instance.GetJoinCodeAsync(a.AllocationId);
-        LobbyUIController.Instance.SetJoinCode(joinCode);
+        LobbyUI.Instance.JoinCode = joinCode;
         _transport.SetHostRelayData(a.RelayServer.IpV4, (ushort)a.RelayServer.Port, a.AllocationIdBytes, a.Key, a.ConnectionData);
         NetworkManager.Singleton.StartHost();
     }
@@ -80,7 +80,7 @@ public class NetworkController : NetworkBehaviour
     {
         if (clientId == NetworkManager.LocalClientId)
         {
-            _lobbyUI.CurrentState = LobbyUIController.State.NICK_CHOOSING;
+            _lobbyUI.Connected();
             _connected = true;
         }
     }
@@ -94,7 +94,7 @@ public class NetworkController : NetworkBehaviour
 
         if (clientId == NetworkManager.LocalClientId) // Client-side issue
         {
-            _lobbyUI.CurrentState = LobbyUIController.State.NOT_CONNECTED;
+            _lobbyUI.Disconnected();
 
             // Change scene
             if (_connected)

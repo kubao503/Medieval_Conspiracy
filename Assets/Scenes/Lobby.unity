@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c44fb75f918fa914491a619eda7113cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lobbyUI: {fileID: 2078822932}
+  _lobbyUI: {fileID: 2078822934}
   _maxPlayers: 6
 --- !u!4 &668785340
 Transform:
@@ -956,10 +956,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2078822930}
-  - component: {fileID: 2078822932}
+  - component: {fileID: 2078822934}
   - component: {fileID: 2078822933}
   m_Layer: 0
-  m_Name: Lobby Controllers
+  m_Name: Lobby UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -980,21 +980,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2078822932
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2078822928}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7225d498c0f804347ab7eb09216bed08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _loadingWheel: {fileID: 796145516}
-  _loadingWheelRotationSpeed: -1
-  _maxCodeLength: 6
 --- !u!114 &2078822933
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1011,6 +996,21 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &2078822934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2078822928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7225d498c0f804347ab7eb09216bed08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LoadingWheel: {fileID: 796145516}
+  LoadingWheelRotationSpeed: -1
+  MaxCodeLength: 6
 --- !u!1 &2088177558
 GameObject:
   m_ObjectHideFlags: 0
