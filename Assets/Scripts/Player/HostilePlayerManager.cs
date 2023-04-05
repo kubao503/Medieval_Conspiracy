@@ -12,9 +12,9 @@ public class HostilePlayerManager : NetworkBehaviour
     // Players currently attacked by guards
     private readonly HashSet<Transform> _hostilePlayers = new();
 
-    private Coroutine _NPCPanicCo;
-    [SerializeField] private LayerMask _npcLayer;
-    [SerializeField] private float _NPCRunAwayFrequency;
+    private Coroutine _residentPanicCo;
+    [SerializeField] private LayerMask _residentLayer;
+    [SerializeField] private float _residentRunAwayFrequency;
     [SerializeField] private float _panicRadius = 1f;
 
 
@@ -53,7 +53,7 @@ public class HostilePlayerManager : NetworkBehaviour
     public void AddToHostilePlayers(Transform player)
     {
         // First hostile player
-        if (_hostilePlayers.Count == 0) _NPCPanicCo = StartCoroutine(NPCPanicCo());
+        if (_hostilePlayers.Count == 0) _residentPanicCo = StartCoroutine(ResidentPanicCo());
 
         _hostilePlayers.Add(player);
 
@@ -86,8 +86,8 @@ public class HostilePlayerManager : NetworkBehaviour
             GuardManager.Instance.TryEndRaid();
 
             // Stop panic
-            NPCManager.Instance.Walk();
-            StopCoroutine(_NPCPanicCo);
+            ResidentManager.Instance.Walk();
+            StopCoroutine(_residentPanicCo);
         }
     }
 
@@ -122,30 +122,25 @@ public class HostilePlayerManager : NetworkBehaviour
     }
 
 
-    IEnumerator NPCPanicCo()
+    IEnumerator ResidentPanicCo()
     {
         while (true)
         {
-            //NPCManager.Instance.Panic(_hostilePlayers);
-            NPCManager.Instance.Walk();
+            ResidentManager.Instance.Walk();
 
             foreach (var player in _hostilePlayers)
             {
-                // Find all NPC in given panic radius
-                var npcList = Physics.OverlapSphere(player.position, _panicRadius, _npcLayer);
+                // Find all resident in given panic radius
+                var residentList = Physics.OverlapSphere(player.position, _panicRadius, _residentLayer);
 
-                // Make each NPC run
-                foreach (var npc in npcList)
+                // Make each resident run
+                foreach (var resident in residentList)
                 {
-                    //try
-                    //{
-                        npc.gameObject.GetComponent<NPCController>().Panic(player.position);
-                    //}
-                    //catch (System.NullReferenceException) { Debug.Log(npc.gameObject.name + " " + npc.transform.position); }
+                    resident.gameObject.GetComponent<ResidentController>().Panic(player.position);
                 }
             }
 
-            yield return new WaitForSeconds(1f / _NPCRunAwayFrequency);
+            yield return new WaitForSeconds(1f / _residentRunAwayFrequency);
         }
     }
 }

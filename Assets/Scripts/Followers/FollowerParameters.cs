@@ -11,7 +11,7 @@ public class FollowerParameters : ScriptableObject
     [SerializeField] private float _maxSpeed = 1f;
     [SerializeField] private float _offsetRange = 1f;
 
-    [Header("Npc")]
+    [Header("Resident")]
     [SerializeField] private float _runSpeed = 1f;
 
     public float MinSpeed => _minSpeed;
