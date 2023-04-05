@@ -57,20 +57,21 @@ public class PlayerController : NetworkBehaviour
                 LeaveBase();
                 break;
             case (_, State.Ragdoll):
-                BecomeRagdoll();
+                _ragdollController.FallDown();
+                StopBeingHostile();
                 break;
             case (_, State.Dead):
                 Die();
                 break;
             case (State.Dead, State.Outside):
+                _ragdollController.StandUp();
                 Appear();
                 break;
         }
     }
 
-    private void BecomeRagdoll()
+    private void StopBeingHostile()
     {
-        _ragdollController.FallDown();
         if (IsServer)
         {
             HostilePlayerManager.Instance.RemoveFromHostilePlayers(transform);

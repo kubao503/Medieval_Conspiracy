@@ -19,6 +19,11 @@ public class RagdollController : MonoBehaviour
         gameObject.layer = GetLayerFromLayerMask(_deadLayer.Value);
     }
 
+    private int GetLayerFromLayerMask(LayerMask layerMask)
+    {
+        return (int)Mathf.Log(layerMask, 2);
+    }
+
     private void AddTemporaryRigidbodyIfMissing()
     {
         if (IsRigidbodyMissing())
@@ -34,7 +39,6 @@ public class RagdollController : MonoBehaviour
     {
         SetTransformToStanding();
         RemoveTemporaryRigidbody();
-        //gameObject.layer = GetLayerFromLayerMask(_defaultLayer);
         gameObject.layer = _defaultLayer;
     }
 
@@ -50,11 +54,6 @@ public class RagdollController : MonoBehaviour
     private void RemoveTemporaryRigidbody()
     {
         Destroy(_tmpRigidBody);
-    }
-
-    private int GetLayerFromLayerMask(LayerMask layerMask)
-    {
-        return (int)Mathf.Log(layerMask, 2);
     }
 
     private void Awake()
