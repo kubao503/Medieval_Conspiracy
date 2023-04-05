@@ -3,7 +3,14 @@ using UnityEngine;
 using System;
 using System.Collections;
 
-public class PlayerState : NetworkBehaviour
+
+public interface IPlayerState
+{
+    public PlayerState.State CurrentState { get; }
+}
+
+
+public class PlayerState : NetworkBehaviour, IPlayerState
 {
     public event EventHandler<StateEventArgs> StateUpdated;
 
@@ -113,4 +120,11 @@ public class StateEventArgs : EventArgs
 {
     public PlayerState.State OldState;
     public PlayerState.State NewState;
+}
+
+
+
+public class FakePlayerState : MonoBehaviour, IPlayerState
+{
+    public PlayerState.State CurrentState { get; set; }
 }

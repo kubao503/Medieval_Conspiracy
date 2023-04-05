@@ -12,7 +12,7 @@ public class PlayerMover : NetworkBehaviour
     private IInput _input = InputAdapter.Instance;
     private Rigidbody _rb;
     private ICameraMover _cameraMover;
-    private PlayerState _playerState;
+    private IPlayerState _playerState;
     private float _cameraVerticalAngle = 0f;
 
     public float CameraVerticalAngle => _cameraVerticalAngle;
@@ -26,7 +26,7 @@ public class PlayerMover : NetworkBehaviour
     {
         _rb = GetComponent<Rigidbody>();
         _cameraMover = GetComponent<ICameraMover>();
-        _playerState = GetComponent<PlayerState>();
+        _playerState = GetComponent<IPlayerState>();
     }
 
     public override void OnNetworkSpawn()

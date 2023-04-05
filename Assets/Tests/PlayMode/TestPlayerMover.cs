@@ -6,8 +6,9 @@ using System.Collections;
 
 public class TestPlayerMover
 {
-    GameObject _player;
-    PlayerMover _playerMover;
+    [SerializeField] private GameObject _playerPrefab;
+    private GameObject _player;
+    private PlayerMover _playerMover;
 
     [UnityTest]
     public IEnumerator TestForwardMovement()
@@ -59,6 +60,11 @@ public class TestPlayerMover
     {
         _player.AddComponent<FakeCameraMover>();
         _player.AddComponent<Rigidbody>().useGravity = false;
+
+        var playerState = _player.AddComponent<FakePlayerState>();
+        playerState.CurrentState = PlayerState.State.Outside;
+        Assert.True(playerState.CurrentState == PlayerState.State.Outside);
+
         _playerMover = _player.AddComponent<PlayerMover>();
     }
 
