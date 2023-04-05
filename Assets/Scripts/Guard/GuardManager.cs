@@ -129,7 +129,7 @@ public class GuardManager : NetworkBehaviour
 
     private void StartGuardRaidIfThereAreHostilePlayers()
     {
-        if (HostilePlayerManager.Instance.CheckForHostilePlayers(out var playerPosition))
+        if (HostilePlayerManager.Instance.GetHostilePlayerPositionIfThereAreAny(out var playerPosition))
             StartGuardRaid(playerPosition);
     }
 

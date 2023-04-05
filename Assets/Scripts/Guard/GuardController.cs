@@ -15,7 +15,7 @@ public class GuardController : NetworkBehaviour
 
     public void UpdateTarget()
     {
-        _target = HostilePlayerManager.Instance.ClosestTarget(transform.position);
+        _target = HostilePlayerManager.Instance.GetClosestHostilePlayer(transform.position);
     }
 
     private void Awake()

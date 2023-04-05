@@ -59,7 +59,7 @@ public class ResidentManager : NetworkBehaviour
         _spawnedResidents.Add(newResident.GetComponent<ResidentScript>());
     }
 
-    public void Walk()
+    public void SetSpeedToDefault()
     {
         foreach (var resident in _spawnedResidents) resident.SetSpeedToDefault();
     }
