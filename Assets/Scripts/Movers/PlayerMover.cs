@@ -39,24 +39,15 @@ public class PlayerMover : NetworkBehaviour
     {
         if (_playerState.CurrentState == PlayerState.State.Outside)
             Move();
-        if (IsCursorLocked())
+        if (IsPlayerAlive())
             Rotate();
-    }
-
-    private bool IsCursorLocked()
-    {
-        return _input.IsCursorLocked();
+        UpdateCameraPositionAndRotation();
     }
 
     private void Move()
     {
-        var input = GetKeyInput();
-        MoveBasedOnInput(input);
-    }
-
-    private Vector2 GetKeyInput()
-    {
-        return _input.GetKeyAxis();
+        var keyInput = _input.GetKeyAxis();
+        MoveBasedOnInput(keyInput);
     }
 
     private void MoveBasedOnInput(Vector2 input)
@@ -64,11 +55,21 @@ public class PlayerMover : NetworkBehaviour
         _rb.velocity = (transform.forward * input.y + transform.right * input.x).normalized * _walkingSpeed;
     }
 
+    bool IsPlayerAlive()
+    {
+        return _playerState.CurrentState != PlayerState.State.Dead
+            && _playerState.CurrentState != PlayerState.State.Ragdoll;
+    }
+
     private void Rotate()
     {
         var input = GetMouseInput();
         LeftRightRotationBasedOnInput(input);
         UpDownRotationBasedOnInput(input);
+    }
+
+    private void UpdateCameraPositionAndRotation()
+    {
         _cameraMover.UpdateCameraPositionAndRotation(_cameraVerticalAngle);
     }
 

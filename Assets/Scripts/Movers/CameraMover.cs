@@ -38,17 +38,22 @@ public class CameraMover : MonoBehaviour, ICameraMover
     public void UpdateCameraPositionAndRotation(float cameraVerticalAngle)
     {
         var cameraDirection = GetCameraDirection(cameraVerticalAngle);
-        _raycastAdapter.Raycast(_cameraHinge.position, cameraDirection, _maxDistance, _ignoreLayers);
+        SendRayInGivenDirection(cameraDirection);
         SetCameraPosition(cameraDirection);
         SetCameraRotation(cameraVerticalAngle);
     }
 
     private Vector3 GetCameraDirection(float cameraVerticalAngle)
     {
-        var cameraDirection = Quaternion.Euler(cameraVerticalAngle, 0f, 0f) * Vector3.back;
-        var player = _camera.parent;
-        var globalCameraDirection = player.TransformDirection(cameraDirection);
-        return globalCameraDirection;
+        var horizontalAngles = Quaternion.FromToRotation(Vector3.back, -transform.forward).eulerAngles.y;
+        var horizontalRotation = Quaternion.Euler(0f, horizontalAngles, 0f);
+        var verticalRotation = Quaternion.Euler(cameraVerticalAngle, 0f, 0f);
+        return horizontalRotation * verticalRotation * Vector3.back;
+    }
+
+    private void SendRayInGivenDirection(Vector3 direction)
+    {
+        _raycastAdapter.Raycast(_cameraHinge.position, direction, _maxDistance, _ignoreLayers);
     }
 
     private void SetCameraPosition(Vector3 cameraDirection)

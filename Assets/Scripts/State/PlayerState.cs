@@ -14,9 +14,9 @@ public class PlayerState : NetworkBehaviour, IPlayerState
 {
     public event EventHandler<StateEventArgs> StateUpdated;
 
+    [SerializeField] private float _ragdollDuration = 1f;
     private readonly NetworkVariable<State> _netState = new(_defaultState);
     private const State _defaultState = State.Spawning;
-    private const float _ragdollDuration = 3f;
 
     public enum State : byte
     {

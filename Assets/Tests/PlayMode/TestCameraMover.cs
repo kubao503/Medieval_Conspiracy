@@ -1,6 +1,10 @@
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
+
+// For Coroutine testing
+// using System.Collections;
+// using UnityEngine.TestTools;
+
 
 public class TestCameraMover
 {
@@ -22,7 +26,7 @@ public class TestCameraMover
         var cameraDistance = _obstacleDistance - _minDistanceFromObstacle;
         var expectedCameraPosition = new Vector3(0f, 0f, -cameraDistance);
         ThenCameraShouldBeAt(expectedCameraPosition);
-        ThenCameraShouldLookAt(Quaternion.Euler(0f, 0f, 0f));
+        ThenCameraShouldLookAt(Quaternion.identity);
     }
 
     [Test]
@@ -78,16 +82,22 @@ public class TestCameraMover
         ThenCameraShouldLookAt(Quaternion.Euler(0f, -90f, 0f));
     }
 
+    [Test]
+    public void TestCameraRotationAfterFall()
+    {
+        GivenThereIsObstacleAtDistance(_obstacleDistance);
+        AndPlayerIsLyingDown();
+
+        WhenVerticalAngleEquals(0f);
+
+        ThenCameraShouldLookAt(Quaternion.identity);
+    }
+
     private void GivenThereIsObstacleAtDistance(float distance)
     {
         CreateObjects();
         var raycastAdapter = new FakeRaycastAdapter(distance, Vector3.forward, true);
-        AddCameraControllerToPlayer(raycastAdapter);
-    }
-
-    private void AndPlayerIsLookingFromTheRight()
-    {
-        _player.transform.Rotate(0f, -90f, 0f);
+        AddCameraMoverToPlayer(raycastAdapter);
     }
 
     private void CreateObjects()
@@ -103,7 +113,7 @@ public class TestCameraMover
         _camera.transform.SetParent(_player.transform);
     }
 
-    private void AddCameraControllerToPlayer(IRaycast raycastAdapter)
+    private void AddCameraMoverToPlayer(IRaycast raycastAdapter)
     {
         _cameraController = _player.AddComponent<CameraMover>();
         _cameraController.SetTestParameters(
@@ -114,6 +124,24 @@ public class TestCameraMover
             raycastAdapter);
     }
 
+    private void GivenThereAreNoObstacles(float distance)
+    {
+        CreateObjects();
+        var raycastAdapter = new FakeRaycastAdapter(distance, Vector3.forward, false);
+        AddCameraMoverToPlayer(raycastAdapter);
+    }
+
+    private void AndPlayerIsLookingFromTheRight()
+    {
+        _player.transform.Rotate(0f, -90f, 0f);
+    }
+
+    private void AndPlayerIsLyingDown()
+    {
+        _player.transform.Rotate(90f, 0f, 0f);
+        AssertAreVectorsEqual(Vector3.down, _player.transform.forward);
+    }
+
     private void WhenVerticalAngleEquals(float value)
     {
         _cameraController.UpdateCameraPositionAndRotation(value);
@@ -121,7 +149,7 @@ public class TestCameraMover
 
     private void ThenCameraShouldBeAt(Vector3 expected)
     {
-        AssertAreEqual(expected, _camera.transform.position);
+        AssertAreVectorsEqual(expected, _camera.transform.position);
     }
 
     private void ThenCameraShouldLookAt(Quaternion expected)
@@ -130,7 +158,7 @@ public class TestCameraMover
         Assert.Less(angleDifference, _delta);
     }
 
-    private void AssertAreEqual(Vector3 expected, Vector3 actual)
+    private void AssertAreVectorsEqual(Vector3 expected, Vector3 actual)
     {
         Assert.AreEqual(expected.x, actual.x, _delta);
         Assert.AreEqual(expected.y, actual.y, _delta);

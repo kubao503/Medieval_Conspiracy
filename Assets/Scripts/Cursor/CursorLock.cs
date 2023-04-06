@@ -58,7 +58,6 @@ public class CursorLock : NetworkBehaviour
 
     private bool IsPlayerDead()
     {
-        return _playerState.CurrentState == PlayerState.State.Dead
-            || _playerState.CurrentState == PlayerState.State.Ragdoll;
+        return _playerState.CurrentState == PlayerState.State.Dead;
     }
 }
