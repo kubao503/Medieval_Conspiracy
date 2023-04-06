@@ -1,48 +1,30 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
+
 public class SkinManager : MonoBehaviour
 {
     public static SkinManager Instance;
+
     [SerializeField] private List<Material> _hatMaterials = new();
     [SerializeField] private List<Material> _shirtMaterials = new();
     [SerializeField] private List<Material> _pantsMaterials = new();
     [SerializeField] private List<Material> _skinColors = new();
-
     private readonly List<NetworkSkin> _availableSkins = new();
 
     public int SkinsLeft => _availableSkins.Count;
 
-
-    private void Awake()
+    public NetworkSkin GetRandomSkin()
     {
-        if (!NetworkManager.Singleton.IsServer) Destroy(gameObject);
+        if (_availableSkins.Count == 0)
+            throw new OutOfSkinsException();
 
-        Instance = this;
-        Init();
+        return PopRandomSkin();
     }
 
-
-    private void Init()
+    private NetworkSkin PopRandomSkin()
     {
-        foreach (var hat in _hatMaterials)
-            foreach (var shirt in _shirtMaterials)
-                foreach (var pants in _pantsMaterials)
-                    foreach (var skinColor in _skinColors)
-                        _availableSkins.Add( new(hat.color, shirt.color, pants.color, skinColor.color) );
-    }
-
-
-    /// <summary>
-    /// Returns unique NetworkSkin
-    /// Throws OutOfSkinsException if there are no skins left
-    /// </summary>
-    public NetworkSkin GetAvailableSkin()
-    {
-        if (_availableSkins.Count == 0) throw new OutOfSkinsException();
-
         int index = Random.Range(0, _availableSkins.Count);
         var skin = _availableSkins[index];
         _availableSkins.RemoveAt(index);
@@ -50,8 +32,33 @@ public class SkinManager : MonoBehaviour
         return skin;
     }
 
+    public void ReturnSkin(NetworkSkin skin)
+    {
+        _availableSkins.Add(skin);
+    }
 
-    public void ReturnSkin(NetworkSkin skin) => _availableSkins.Add(skin);
+    private void Awake()
+    {
+        if (NetworkManager.Singleton.IsServer)
+        {
+            Instance = this;
+            GenerateSkins();
+        }
+        else
+            Destroy(gameObject);
+    }
+
+    private void GenerateSkins()
+    {
+        if (_availableSkins.Count != 0)
+            return;
+
+        foreach (var hat in _hatMaterials)
+            foreach (var shirt in _shirtMaterials)
+                foreach (var pants in _pantsMaterials)
+                    foreach (var skinColor in _skinColors)
+                        _availableSkins.Add( new(hat.color, shirt.color, pants.color, skinColor.color) );
+    }
 }
 
 
@@ -62,10 +69,21 @@ public struct NetworkColor : INetworkSerializable
 {
     private byte _r, _g, _b;
     const byte _maxValue = byte.MaxValue;
+    const float _alpha = 1f;
 
     public Color Color
     {
-        readonly get => new((float)_r / _maxValue, (float)_g / _maxValue, _b / (float)_maxValue, 1f);
+        readonly get
+        {
+            return new()
+            {
+                r = (float)_r / _maxValue,
+                g = (float)_g / _maxValue,
+                b = (float)_b / _maxValue,
+                a = _alpha
+            };
+        }
+
         set
         {
             _r = (byte)Mathf.RoundToInt(value.r * _maxValue);
@@ -93,14 +111,6 @@ public struct NetworkSkin : INetworkSerializable
         _shirt = new() { Color = shirt };
         _pants = new() { Color = pants };
         _skinColor = new() { Color = skinColor };
-    }
-
-    public NetworkSkin(NetworkSkin skin)
-    {
-        _hat = skin.Hat;
-        _shirt = skin.Shirt;
-        _pants = skin.Pants;
-        _skinColor = skin.SkinColor;
     }
 
     public readonly NetworkColor Hat => _hat;
