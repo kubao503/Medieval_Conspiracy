@@ -1,9 +1,8 @@
 {
-    "name": "Skin",
+    "name": "FakeNetwork",
     "rootNamespace": "",
     "references": [
-        "GUID:1491147abca9d7d4bb7105af628b223e",
-        "GUID:38921df127e50f04d9dde147f5219d6b"
+        "GUID:1491147abca9d7d4bb7105af628b223e"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -12,6 +12,7 @@ public class SkinManager : MonoBehaviour
     [SerializeField] private List<Material> _pantsMaterials = new();
     [SerializeField] private List<Material> _skinColors = new();
     private readonly List<NetworkSkin> _availableSkins = new();
+    private INetworkManager _networkManager = new RealNetworkManger();
 
     public int SkinsLeft => _availableSkins.Count;
 
@@ -39,13 +40,26 @@ public class SkinManager : MonoBehaviour
 
     private void Awake()
     {
-        if (NetworkManager.Singleton.IsServer)
+        if (IsServer())
         {
             Instance = this;
             GenerateSkins();
         }
         else
             Destroy(gameObject);
+    }
+
+    private bool IsServer()
+    {
+        try
+        {
+            return _networkManager.IsServer;
+        }
+        catch (System.NullReferenceException)
+        {
+            _networkManager = new FakeNetworkManger() { IsServer = true };
+        }
+        return _networkManager.IsServer;
     }
 
     private void GenerateSkins()
