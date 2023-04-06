@@ -6,7 +6,6 @@ using System.Collections;
 
 public class TestPlayerMover
 {
-    [SerializeField] private GameObject _playerPrefab;
     private GameObject _player;
     private PlayerMover _playerMover;
 

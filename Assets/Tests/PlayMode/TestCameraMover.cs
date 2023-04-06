@@ -1,10 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
 
-// For Coroutine testing
-// using System.Collections;
-// using UnityEngine.TestTools;
-
 
 public class TestCameraMover
 {
