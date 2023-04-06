@@ -10,10 +10,37 @@ public class ResidentManager : NetworkBehaviour
 {
     public static ResidentManager Instance;
 
+    [SerializeField] private GameObject _residentPrefab;
+    [SerializeField] private float _distanceSyncInterval;
+    private WaitForSeconds _distanceSyncWait;
     private readonly HashSet<ResidentScript> _spawnedResidents = new();
 
-    [SerializeField] private GameObject _residentPrefab;
+    public void SetSpeedToDefault()
+    {
+        foreach (var resident in _spawnedResidents)
+            resident.SetSpeedToDefault();
+    }
 
+    public void SpawnRandomResidents()
+    {
+        while (SkinManager.Instance.SkinsLeft > 0)
+            SpawnResident();
+    }
+
+    private void SpawnResident()
+    {
+        var newResident = Instantiate(_residentPrefab);
+
+        newResident.GetComponent<NetworkObject>().Spawn();
+        newResident.GetComponent<SkinPicker>().SetNetSkin();
+
+        _spawnedResidents.Add(newResident.GetComponent<ResidentScript>());
+    }
+
+    private void Awake()
+    {
+        _distanceSyncWait = new WaitForSeconds(_distanceSyncInterval);
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -26,35 +53,13 @@ public class ResidentManager : NetworkBehaviour
             enabled = false;
     }
 
-    public void SpawnRandomResidents()
-    {
-        while (SkinManager.Instance.SkinsLeft > 0)
-            SpawnResident();
-    }
-
-    IEnumerator DistanceSyncCoroutine()
+    private IEnumerator DistanceSyncCoroutine()
     {
         while (true)
         {
-            yield return new WaitForSeconds(1f);
+            yield return _distanceSyncWait;
             foreach (var resident in _spawnedResidents)
                 resident.DistanceSync();
         }
-    }
-
-    private void SpawnResident()
-    {
-        var newResident = Instantiate(_residentPrefab);
-
-        newResident.GetComponent<NetworkObject>().Spawn();
-        newResident.GetComponent<SkinPicker>().SetNetSkin();
-
-        // Add resident to list
-        _spawnedResidents.Add(newResident.GetComponent<ResidentScript>());
-    }
-
-    public void SetSpeedToDefault()
-    {
-        foreach (var resident in _spawnedResidents) resident.SetSpeedToDefault();
     }
 }
