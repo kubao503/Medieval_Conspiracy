@@ -18,10 +18,14 @@ public class SkinManager : MonoBehaviour
 
     public NetworkSkin GetRandomSkin()
     {
-        if (_availableSkins.Count == 0)
+        try
+        {
+            return PopRandomSkin();
+        }
+        catch (System.ArgumentOutOfRangeException)
+        {
             throw new OutOfSkinsException();
-
-        return PopRandomSkin();
+        }
     }
 
     private NetworkSkin PopRandomSkin()
