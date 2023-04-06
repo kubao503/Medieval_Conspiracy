@@ -17,6 +17,7 @@ public class PlayerSpawner : MonoBehaviour
     {
         InstantiatePlayerInsideTeamBase(team);
         SpawnAsPlayerObjectOfClient(clientId);
+        _player.GetComponent<SkinPicker>().SetNetSkin();
         SetPlayerTeam(team);
     }
 

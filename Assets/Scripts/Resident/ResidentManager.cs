@@ -13,7 +13,6 @@ public class ResidentManager : NetworkBehaviour
     private readonly HashSet<ResidentScript> _spawnedResidents = new();
 
     [SerializeField] private GameObject _residentPrefab;
-    [SerializeField] private int _residentCount;
 
 
     public override void OnNetworkSpawn()
@@ -21,21 +20,15 @@ public class ResidentManager : NetworkBehaviour
         if (IsServer)
         {
             Instance = this;
-            NetworkManager.SceneManager.OnLoadEventCompleted += SpawnRandomResidents;
             StartCoroutine(DistanceSyncCoroutine());
         }
         else
             enabled = false;
     }
 
-    private void SpawnRandomResidents(string sceneName, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    public void SpawnRandomResidents()
     {
-        SpawnRandomResidents();
-    }
-
-    private void SpawnRandomResidents()
-    {
-        for (int i = 0; i < _residentCount; ++i)
+        while (SkinManager.Instance.SkinsLeft > 0)
             SpawnResident();
     }
 
@@ -54,6 +47,7 @@ public class ResidentManager : NetworkBehaviour
         var newResident = Instantiate(_residentPrefab);
 
         newResident.GetComponent<NetworkObject>().Spawn();
+        newResident.GetComponent<SkinPicker>().SetNetSkin();
 
         // Add resident to list
         _spawnedResidents.Add(newResident.GetComponent<ResidentScript>());

@@ -16,18 +16,9 @@ public class SkinPicker : NetworkBehaviour
     [SerializeField] private List<ElementType> _skinElements = new();
 
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        if (NetworkManager.Singleton.IsServer)
-        {
-            GetAvailableSkin();
-        }
-        else
-        {
-            // Get skin color
-            _netSkin.OnValueChanged += SetSkin;
-            SetSkin(_netSkin.Value, _netSkin.Value);
-        }
+        _netSkin.OnValueChanged += SetSkinBasedOnNetSkin;
     }
 
 
@@ -40,22 +31,15 @@ public class SkinPicker : NetworkBehaviour
     }
 
 
-    private void GetAvailableSkin()
+    public void SetNetSkin()
     {
         var skin = SkinManager.Instance.GetAvailableSkin();
-        SetSkin(skin);
-
-        // Synchronize
         _netSkin.Value = new(skin);
     }
 
-
-    private void SetSkin(NetworkSkin _, NetworkSkin skin) => SetSkin(skin);
-
-
-    // Server-side
-    private void SetSkin(in NetworkSkin skin)
+    private void SetSkinBasedOnNetSkin(NetworkSkin _, NetworkSkin newSkin)
     {
+        var skin = _netSkin.Value;
         foreach (var hat in _hatElements) hat.material.color = skin.Hat.Color;
         foreach (var shirt in _shirtElements) shirt.material.color = skin.Shirt.Color;
         foreach (var pants in _pantsElements) pants.material.color = skin.Pants.Color;

@@ -35,6 +35,7 @@ public class BaseManager : NetworkBehaviour
     {
         SetBases();
         TeamManager.Instance.SpawnPlayers();
+        ResidentManager.Instance.SpawnRandomResidents();
     }
 
     private void SetBases()

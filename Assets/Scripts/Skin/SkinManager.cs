@@ -13,6 +13,8 @@ public class SkinManager : MonoBehaviour
 
     private readonly List<NetworkSkin> _availableSkins = new();
 
+    public int SkinsLeft => _availableSkins.Count;
+
 
     private void Awake()
     {
