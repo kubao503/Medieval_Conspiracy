@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 
 public class BaseManager : NetworkBehaviour
@@ -12,33 +11,12 @@ public class BaseManager : NetworkBehaviour
     private Transform _buildingHolder; // TODO: Make Serialized
     private Vector3[] _entrancePositions = new Vector3[(int)Team.Total];
 
-    private void Awake()
-    {
-        Instance = this;
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        if (IsServer)
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += SceneLoadCompletedCallback;
-
-        base.OnNetworkSpawn();
-    }
-
     public Vector3 GetBasePosition(Team team)
     {
         return _entrancePositions[(int)team];
     }
 
-    private void SceneLoadCompletedCallback(
-        string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
-    {
-        SetBases();
-        TeamManager.Instance.SpawnPlayers();
-        ResidentManager.Instance.SpawnRandomResidents();
-    }
-
-    private void SetBases()
+    public void SetBases()
     {
         FindAndSetBuildingHolder();
         IList<Transform> entrances = FindAllEntrances();
@@ -115,5 +93,13 @@ public class BaseManager : NetworkBehaviour
     private void UpdateEntrancePositions(Transform entrance, Team team)
     {
         _entrancePositions[(int)team] = entrance.position;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+            Instance = this;
+        else
+            Destroy(this);
     }
 }
