@@ -8,7 +8,7 @@ public class BaseManager : NetworkBehaviour
     public static BaseManager Instance;
 
     [SerializeField] private GameObject _teamEntrancePrefab;
-    private Transform _buildingHolder; // TODO: Make Serialized
+    [SerializeField] private Transform _buildingHolder;
     private Vector3[] _entrancePositions = new Vector3[(int)Team.Total];
 
     public Vector3 GetBasePosition(Team team)
@@ -18,18 +18,12 @@ public class BaseManager : NetworkBehaviour
 
     public void SetBases()
     {
-        FindAndSetBuildingHolder();
         IList<Transform> entrances = FindAllEntrances();
 
         CheckEntranceCount(entrances);
 
         SetTeamBaseAtRandomEntrance(entrances, Team.A);
         SetTeamBaseAtRandomEntrance(entrances, Team.B);
-    }
-
-    private void FindAndSetBuildingHolder()
-    {
-        _buildingHolder = GameObject.Find("Building Holder").transform;
     }
 
     private List<Transform> FindAllEntrances()
