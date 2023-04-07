@@ -10,16 +10,6 @@ public class TeamManager : NetworkBehaviour
 
     private readonly HashSet<ulong> _deadClients = new();
 
-    public void SpawnPlayers()
-    {
-        var connectedClientsIds = NetworkManager.Singleton.ConnectedClientsIds;
-        foreach (var clientId in connectedClientsIds)
-        {
-            Team team = LobbyPlayerDataManager.Instance.GetClientTeam(clientId);
-            PlayerSpawner.Instance.Spawn(clientId, team);
-        }
-    }
-
     public void DeadPlayerUpdate(Team playerTeam, ulong clientId)
     {
         _deadClients.Add(clientId);

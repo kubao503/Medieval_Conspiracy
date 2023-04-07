@@ -16,7 +16,7 @@ public class OnLoadEventCompleted : NetworkBehaviour
         string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
         BaseManager.Instance.SetBases();
-        TeamManager.Instance.SpawnPlayers();
+        PlayerSpawner.Instance.SpawnAllPlayers();
         ResidentManager.Instance.SpawnRandomResidents();
     }
 }

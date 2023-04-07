@@ -8,12 +8,17 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private GameObject _playerPrefab;
     private GameObject _player;
 
-    private void Awake()
+    public void SpawnAllPlayers()
     {
-        Instance = this;
+        var connectedClientsIds = NetworkManager.Singleton.ConnectedClientsIds;
+        foreach (var clientId in connectedClientsIds)
+        {
+            Team team = LobbyPlayerDataManager.Instance.GetClientTeam(clientId);
+            SpawnOnePlayer(clientId, team);
+        }
     }
 
-    public void Spawn(ulong clientId, Team team)
+    private void SpawnOnePlayer(ulong clientId, Team team)
     {
         InstantiatePlayerInsideTeamBase(team);
         SpawnAsPlayerObjectOfClient(clientId);
@@ -37,5 +42,10 @@ public class PlayerSpawner : MonoBehaviour
     {
         var teamController = _player.GetComponent<TeamController>();
         teamController.Team = team;
+    }
+
+    private void Awake()
+    {
+        Instance = this;
     }
 }
