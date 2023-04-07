@@ -1,0 +1,20 @@
+{
+    "name": "Resident",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1491147abca9d7d4bb7105af628b223e",
+        "GUID:536c400339c5c824bb41d6cf0bb29553",
+        "GUID:c70b70e9cb3c87d4f8642dd1576a7ae4",
+        "GUID:31d62d9890cb8c94f91126ae832b881e",
+        "GUID:5b78a675276c10a42aa1be0be50673bd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
