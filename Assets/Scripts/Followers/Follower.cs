@@ -37,10 +37,8 @@ public abstract class Follower : NetworkBehaviour
     {
         UpdateDistanceTravelled();
 
-        var position = GetPosition();
-        var rotation = GetRotation();
-
-        transform.SetPositionAndRotation(position, rotation);
+        transform.rotation = GetRotation();
+        transform.position = GetPosition();
     }
 
     private void UpdateDistanceTravelled()
