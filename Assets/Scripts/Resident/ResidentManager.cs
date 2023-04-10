@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-using ResidentScript = ResidentController;
-
 
 public class ResidentManager : NetworkBehaviour
 {
@@ -13,11 +11,11 @@ public class ResidentManager : NetworkBehaviour
     [SerializeField] private GameObject _residentPrefab;
     [SerializeField] private float _distanceSyncInterval;
     private WaitForSeconds _distanceSyncWait;
-    private readonly HashSet<ResidentScript> _spawnedResidents = new();
+    private readonly HashSet<ResidentFollower> _residentFollowers = new();
 
     public void SetSpeedToDefault()
     {
-        foreach (var resident in _spawnedResidents)
+        foreach (var resident in _residentFollowers)
             resident.SetSpeedToDefault();
     }
 
@@ -34,7 +32,7 @@ public class ResidentManager : NetworkBehaviour
         newResident.GetComponent<NetworkObject>().Spawn();
         newResident.GetComponent<SkinPicker>().SetNetSkin();
 
-        _spawnedResidents.Add(newResident.GetComponent<ResidentScript>());
+        _residentFollowers.Add(newResident.GetComponent<ResidentFollower>());
     }
 
     private void Awake()
@@ -58,7 +56,7 @@ public class ResidentManager : NetworkBehaviour
         while (true)
         {
             yield return _distanceSyncWait;
-            foreach (var resident in _spawnedResidents)
+            foreach (var resident in _residentFollowers)
                 resident.DistanceSync();
         }
     }

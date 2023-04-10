@@ -28,16 +28,6 @@ public class ResidentController : NetworkBehaviour
         return !_audioSource.isPlaying;
     }
 
-    public void SetSpeedToDefault()
-    {
-        _follower.SetSpeedToDefault();
-    }
-
-    public void DistanceSync()
-    {
-        _follower.DistanceSync();
-    }
-
     private void Awake()
     {
         _follower = GetComponent<ResidentFollower>();
