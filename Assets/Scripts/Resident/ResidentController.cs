@@ -39,8 +39,6 @@ public class ResidentController : NetworkBehaviour
     private void Start()
     {
         SubscribeToDeadUpdate();
-        if (IsServer)
-            _follower.SetRandomPositionAlongPath();
     }
 
     private void SubscribeToDeadUpdate()

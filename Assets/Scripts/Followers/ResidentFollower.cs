@@ -79,7 +79,10 @@ public class ResidentFollower : Follower
     public override void OnNetworkSpawn()
     {
         if (IsServer)
+        {
             SetInitSpeed();
+            SetRandomPositionAlongPath();
+        }
         base.OnNetworkSpawn();
     }
 
